@@ -1,7 +1,6 @@
 # rcsb-statistical-charts
 
-RCSB Statistical Charts is an open-source library that includes different tools to plot statistics of RCSB PDB structure features.  
-[RCSB Search API](https://search.rcsb.org/).
+RCSB Statistical Charts is an open-source library that includes different tools to plot statistics of RCSB PDB structure features. 
 
 ### Node Module Installation
 `npm install @rcsb/rcsb-statistical-charts`
