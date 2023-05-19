@@ -1,0 +1,16 @@
+
+{
+    "roots": ["<rootDir>/test"],
+    "testEnvironment": "jsdom",
+    "transform": {
+        "^.+\\.tsx?$": "ts-jest",
+
+        "^.+\\.jsx?$": "babel-jest"
+    },
+    "testRegex": ".*.test.tsx?$",
+    "transformIgnorePatterns": ["/node_modules/(?!@rcsb)"],
+    "moduleNameMapper": {
+        "^.+\\.(css|less|scss)$": "babel-jest"
+    },
+    "setupFiles": ["jest-canvas-mock"]
+}

@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "./lib",
+    "moduleResolution": "node",
+    "noImplicitAny": true,
+    "alwaysStrict": true,
+    "noImplicitThis": true,
+    "target": "es6",
+    "module": "esnext",
+    "jsx": "react",
+    "lib": [ "dom", "es2020" ],
+    "allowJs": true,
+    "sourceMap": true,
+    "noUnusedLocals": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "declaration": true,
+    "declarationDir": "./lib",
+    "esModuleInterop": true,
+    "skipLibCheck": true
+  },
+  "include": [ "src" ],
+  "exclude": [
+    "node_modules"
+  ]
+}
