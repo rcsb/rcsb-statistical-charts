@@ -5,6 +5,7 @@
   "main": "app.ts",
   "scripts": {
     "devServer": "webpack-dev-server --config webpack.server.dev.config.js",
+    "publishApp": "npm publish",
     "runTest": "jest"
   },
   "repository": {
