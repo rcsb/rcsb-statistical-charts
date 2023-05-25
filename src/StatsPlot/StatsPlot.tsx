@@ -23,13 +23,13 @@ import {SearchClient} from "@rcsb/rcsb-search-tools/lib/SearchClient/SearchClien
 import {QueryResult} from "@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchResultInterface";
 import {getFacetsFromSearch} from "@rcsb/rcsb-search-tools/lib/SearchParseTools/SearchFacetTools";
 import {HistogramChartDataProvider} from "@rcsb/rcsb-charts/lib/RcsbChartDataProvider/HistogramChartDataProvider";
-import {
-    VictoryHistogramChartComponent
-} from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/VictoryChartImplementations/VictoryHistogramChartComponent";
-import {
-    VictoryBarChartComponent
-} from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/VictoryChartImplementations/VictoryBarChartComponent";
 import {BarChartDataProvider} from "@rcsb/rcsb-charts/lib/RcsbChartDataProvider/BarChartDataProvider";
+import {
+    ChartJsBarComponent
+} from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/ChatJsImplementations/ChartJsBarComponent";
+import {
+    ChartJsHistogramComponent
+} from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/ChatJsImplementations/ChartJsHistogramComponent";
 
 export function StatsPlot(props: StatsPlotInterface) {
 
@@ -45,7 +45,7 @@ export function StatsPlot(props: StatsPlotInterface) {
 
     return (<ChartComponent
         data={data}
-        chartComponentImplementation={props.chartType == ChartType.histogram ? VictoryHistogramChartComponent : VictoryBarChartComponent}
+        chartComponentImplementation={props.chartType == ChartType.histogram ? ChartJsHistogramComponent : ChartJsBarComponent}
         dataProvider={props.chartType == ChartType.histogram ? new HistogramChartDataProvider() : new BarChartDataProvider()}
         chartConfig={props.chartConfig}
     />);

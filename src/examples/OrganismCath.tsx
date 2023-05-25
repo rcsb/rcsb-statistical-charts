@@ -22,8 +22,7 @@ root.render(<StatsPlot
     firstDim={{
         name: `FACET/${RcsbSearchMetadata.RcsbEntitySourceOrganism.NcbiScientificName.path}`,
         aggregation_type: AggregationType.Terms,
-        attribute: RcsbSearchMetadata.RcsbEntitySourceOrganism.NcbiScientificName.path,
-        max_num_intervals: 10
+        attribute: RcsbSearchMetadata.RcsbEntitySourceOrganism.NcbiScientificName.path
     }}
     secondDim={{
         filter: {
@@ -49,7 +48,7 @@ root.render(<StatsPlot
                 name: `FACET/${RcsbSearchMetadata.RcsbPolymerInstanceAnnotation.AnnotationLineage.Name.path}/${RcsbSearchMetadata.RcsbPolymerInstanceAnnotation.Type.enum.CATH}`,
                 attribute: RcsbSearchMetadata.RcsbPolymerInstanceAnnotation.AnnotationLineage.Name.path,
                 aggregation_type: AggregationType.Terms,
-                max_num_intervals: 10
+                max_num_intervals: 5
             }]
         }]
     }}
@@ -63,7 +62,6 @@ root.render(<StatsPlot
             constWidth: 1200,
             constHeight: 600
         },
-        domainMinValue: 1975,
         mostPopulatedGroups: 10
     }}
 />);
