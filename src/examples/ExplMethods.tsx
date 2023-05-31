@@ -8,14 +8,14 @@ import {
 import { ReturnType } from "@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchEnums";
 import {ChartType} from "@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartConfigInterface";
 
-import {StatsPlot} from "../StatsPlot/StatsPlot";
+import {FacetPlot} from "../StatsPlot/FacetPlot";
 
 const node: HTMLElement|null = document.getElementById("chart-element");
 if(node==null)
     throw `ERROR: HTML element not found`
 
 const root = createRoot(node);
-root.render(<StatsPlot
+root.render(<FacetPlot
     firstDim={{
         name: `FACET/${RcsbSearchMetadata.RcsbAccessionInfo.InitialReleaseDate.path}`,
         aggregation_type: AggregationType.DateHistogram,

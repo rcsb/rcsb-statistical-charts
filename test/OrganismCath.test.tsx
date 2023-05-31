@@ -1,5 +1,4 @@
 import {act, render, screen} from "@testing-library/react";
-import {ChartType} from "@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartConfigInterface";
 import {RcsbSearchMetadata} from "@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchMetadata";
 import {
     AggregationType,
@@ -7,14 +6,18 @@ import {
     Type,
     ReturnType
 } from "@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchEnums";
-import {StatsPlot} from "../src/StatsPlot/StatsPlot";
+import {ChartFacetPlot} from "../src/StatsPlot/FacetPlot";
 import * as React from "react";
+import {
+    VictoryBarChartComponent
+} from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/VictoryChartImplementations/VictoryBarChartComponent";
+import {BarChartDataProvider} from "@rcsb/rcsb-charts/lib/RcsbChartDataProvider/BarChartDataProvider";
 
-describe('<OrganismCath> test', ()=>{
+describe('<ChartFacetPlot> Organism CATH test', ()=>{
     test('count nodes[role=presentation] and <path/> elements', async ()=>{
         let container: HTMLElement = document.createElement("div");
         await act(()=>{
-            const component = render(<StatsPlot
+            const component = render(<ChartFacetPlot
                 firstDim={{
                     name: `FACET/${RcsbSearchMetadata.RcsbEntitySourceOrganism.NcbiScientificName.path}`,
                     aggregation_type: AggregationType.Terms,
@@ -49,7 +52,8 @@ describe('<OrganismCath> test', ()=>{
                         }]
                     }]
                 }}
-                chartType={ChartType.barplot}
+                chartComponent={VictoryBarChartComponent}
+                dataProvider={new BarChartDataProvider()}
                 returnType={ReturnType.Entry}
             />);
             container = component.container;

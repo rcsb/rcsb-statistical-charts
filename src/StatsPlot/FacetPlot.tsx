@@ -1,7 +1,7 @@
 import * as React from "react";
 import {useEffect, useState} from "react";
 
-import {StatsPlotInterface} from "./StatsPlotInterface";
+import {ChartFacetPlotInterface, FacetPlotInterface} from "./FacetPlotInterface";
 import {SearchQueryType, SearchRequestType} from "@rcsb/rcsb-search-tools/lib/SearchQueryTools/SearchQueryInterfaces";
 import {
     buildAttributeQuery,
@@ -31,7 +31,7 @@ import {
     ChartJsHistogramComponent
 } from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/ChatJsImplementations/ChartJsHistogramComponent";
 
-export function StatsPlot(props: StatsPlotInterface) {
+export function FacetPlot(props: FacetPlotInterface) {
 
     const [data, setData] = useState<ChartObjectInterface[][]>([]);
 
@@ -52,7 +52,28 @@ export function StatsPlot(props: StatsPlotInterface) {
 
 }
 
-async function chartFacets(props: StatsPlotInterface): Promise<ChartObjectInterface[][]>{
+export function ChartFacetPlot(props: ChartFacetPlotInterface) {
+
+    const [data, setData] = useState<ChartObjectInterface[][]>([]);
+
+    useEffect(()=>{
+        chartFacets(props).then(
+            (data)=>{
+                setData(data);
+            }
+        );
+    }, []);
+
+    return (<ChartComponent
+        data={data}
+        chartComponentImplementation={props.chartComponent}
+        dataProvider={props.dataProvider}
+        chartConfig={props.chartConfig}
+    />);
+
+}
+
+async function chartFacets(props: Omit<FacetPlotInterface, "chartType">): Promise<ChartObjectInterface[][]>{
 
     const searchQuery: SearchQueryType = props.searchQuery ?? buildAttributeQuery({
         attribute: RcsbSearchMetadata.RcsbEntryInfo.StructureDeterminationMethodology.path,

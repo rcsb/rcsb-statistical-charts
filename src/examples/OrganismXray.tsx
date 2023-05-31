@@ -8,7 +8,7 @@ import {
 import { ReturnType, Service } from "@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchEnums";
 import {ChartType} from "@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartConfigInterface";
 
-import {StatsPlot} from "../StatsPlot/StatsPlot";
+import {FacetPlot} from "../StatsPlot/FacetPlot";
 import {buildAttributeQuery} from "@rcsb/rcsb-search-tools/lib/SearchQueryTools/SearchQueryTools";
 
 const node: HTMLElement|null = document.getElementById("chart-element");
@@ -16,7 +16,7 @@ if(node==null)
     throw `ERROR: HTML element not found`
 
 const root = createRoot(node);
-root.render(<StatsPlot
+root.render(<FacetPlot
     searchQuery={buildAttributeQuery({
         attribute: RcsbSearchMetadata.Exptl.Method.path,
         value: RcsbSearchMetadata.Exptl.Method.enum["X-RAY DIFFRACTION"],

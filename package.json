@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@rcsb/rcsb-api-tools": "^4.1.11",
-    "@rcsb/rcsb-charts": "^0.0.9",
+    "@rcsb/rcsb-charts": "^0.2.1",
     "@rcsb/rcsb-search-tools": "^0.0.5"
   }
 }

@@ -6,15 +6,18 @@ import {
     Interval
 } from "@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchEnums";
 import { ReturnType } from "@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchEnums";
-import {ChartType} from "@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartConfigInterface";
 
-import {StatsPlot} from "../src/StatsPlot/StatsPlot";
+import {ChartFacetPlot} from "../src/StatsPlot/FacetPlot";
+import {HistogramChartDataProvider} from "@rcsb/rcsb-charts/lib/RcsbChartDataProvider/HistogramChartDataProvider";
+import {
+    VictoryHistogramChartComponent
+} from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/VictoryChartImplementations/VictoryHistogramChartComponent";
 
-describe('<StatsPlot> test', ()=>{
+describe('<ChartFacetPlot> Released Expl method test', ()=>{
     test('count nodes[role=presentation] and <path/> elements', async ()=>{
         let container: HTMLElement = document.createElement("div");
         await act(()=>{
-            const component = render(<StatsPlot
+            const component = render(<ChartFacetPlot
                 firstDim={{
                     name: `FACET/${RcsbSearchMetadata.RcsbAccessionInfo.InitialReleaseDate.path}`,
                     aggregation_type: AggregationType.DateHistogram,
@@ -27,7 +30,8 @@ describe('<StatsPlot> test', ()=>{
                     aggregation_type: AggregationType.Terms,
                     attribute: RcsbSearchMetadata.Exptl.Method.path
                 }}
-                chartType={ChartType.histogram}
+                chartComponent={VictoryHistogramChartComponent}
+                dataProvider={new HistogramChartDataProvider()}
                 returnType={ReturnType.Entry}
             />);
             container = component.container;
