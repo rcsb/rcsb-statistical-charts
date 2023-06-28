@@ -38,7 +38,7 @@ const commonConfig = {
 };
 
 
-const examples = ['ExplMethods', 'XrayMethod', 'OrganismXray', 'OrganismExplMethod', 'CathExplMethod', 'OrganismCath'];
+const examples = ['ExplMethods', 'XrayMethod', 'OrganismXray', 'OrganismExplMethod', 'CathExplMethod', 'OrganismCath', 'StatsApp'];
 const entries = examples.reduce((prev,current)=>{prev[current]=`./src/examples/${current}.tsx`;return prev;},{});
 
 const server = {

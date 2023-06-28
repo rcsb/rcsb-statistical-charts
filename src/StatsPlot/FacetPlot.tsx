@@ -36,12 +36,9 @@ export function FacetPlot(props: FacetPlotInterface) {
     const [data, setData] = useState<ChartObjectInterface[][]>([]);
 
     useEffect(()=>{
-        chartFacets(props).then(
-            (data)=>{
-                setData(data);
-            }
-        );
-    }, []);
+        setData([]);
+        chartFacets(props).then(data=> setData(data));
+    }, [props]);
 
     return (<ChartComponent
         data={data}
@@ -57,12 +54,8 @@ export function ChartFacetPlot(props: ChartFacetPlotInterface) {
     const [data, setData] = useState<ChartObjectInterface[][]>([]);
 
     useEffect(()=>{
-        chartFacets(props).then(
-            (data)=>{
-                setData(data);
-            }
-        );
-    }, []);
+        chartFacets(props).then(data=> setData(data));
+    }, [props]);
 
     return (<ChartComponent
         data={data}

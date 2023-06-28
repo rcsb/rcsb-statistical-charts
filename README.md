@@ -26,6 +26,16 @@ Go to:
 - `http://localhost:9000/CathExplMethod.html`
 - `http://localhost:9000/OrganismCath.html`
 
+### Statistical app proof of concept
+The statistical app (`src/StatsApp/StatsApp.tsx`) is a proof of concept for RCSB statistics. 
+
+Testing available
+- `npm install`
+- `npm run devServer`
+
+Go to:
+- `http://localhost:9000/StatsApp.html`
+
 ### Interfaces
 - Main interface
 ```typescript
