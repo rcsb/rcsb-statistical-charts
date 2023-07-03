@@ -1,59 +1,50 @@
 import * as React from "react";
 import {useState} from "react";
-import {FacetSelector, SelectorRoleType} from "./Components/FacetSelector";
 import {ADDITIONAL_FACET_STORE, FACET_STORE} from "./FacetStore";
 import {FacetPlot} from "../StatsPlot/FacetPlot";
 import {ReturnType} from "@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchEnums";
-import {Observer} from "rxjs";
-import {StatsFacetInterface} from "./StatsFacetInterface";
 
-interface StatsAppState {
-    mainAttribute: StatsFacetInterface;
-    additionalAttribute?: StatsFacetInterface;
-}
 export function StatsApp(){
 
-    const [state, setState] = useState<StatsAppState>({mainAttribute: FACET_STORE[0]});
+    const [opt1, setOpt1] = useState<number>(0);
+    const [opt2, setOpt2] = useState<number>(0);
+    const mainFacet = FACET_STORE[opt1];
+    const additionalFacet = ADDITIONAL_FACET_STORE[opt2];
 
-    const selectorObserver: Observer<{facet:StatsFacetInterface;role:SelectorRoleType;}> = {
-        next: (selector) => {
-           setState( prevState=>{
-               const newFacet = selector.facet;
-               return {
-                   ...prevState,
-                   [selector.role == "main" ? "mainAttribute" : "additionalAttribute"]: newFacet
-               }
-           });
-        },
-        error: ()=>{},
-        complete: ()=>{}
-    };
+    if (!mainFacet.facet || !mainFacet.chartType) return null;
 
-
-    return state.mainAttribute.facet && state.mainAttribute.chartType ?
+    return (
         <div>
             <div style={{marginBottom:20}}>
-                <FacetSelector
-                    componentId={"main-attribute"}
-                    observer={selectorObserver}
-                    selectorRole={"main"}
-                    facets={FACET_STORE}
-                />
-                <FacetSelector
-                    componentId={"additional-attribute"}
-                    observer={selectorObserver}
-                    selectorRole={"additional"}
-                    facets={ADDITIONAL_FACET_STORE}
-                />
+                {/* Select 1st Dataset */}
+                <label>Label1</label>
+                <select onChange={(e)=>setOpt1(Number(e.target.value))}>
+                    {
+                        FACET_STORE.map((facet, index)=>{
+                            return <option key={index} value={index}>{facet.facetName}</option>
+                        })
+                    }
+                </select>
+                {/* Select 2nd Dataset */}
+                <label>Label1</label>
+                <select onChange={(e)=>setOpt2(Number(e.target.value))}>
+                    {
+                        ADDITIONAL_FACET_STORE.map((facet, index)=>{
+                            return <option key={index} value={index}>{facet.facetName}</option>
+                        })
+                    }
+                </select>
             </div>
+            {/* Draw the Chart */}
             <FacetPlot
-                firstDim={state.mainAttribute.facet}
+                firstDim={mainFacet.facet}
                 secondDim={
-                    state.mainAttribute.facetId != state.additionalAttribute?.facetId ? state.additionalAttribute?.facet : undefined
+                    mainFacet.facetId != additionalFacet?.facetId ? additionalFacet?.facet : undefined
                 }
-                chartType={state.mainAttribute.chartType}
+                chartType={mainFacet.chartType}
                 returnType={ReturnType.Entry}
-                chartConfig={state.mainAttribute.chartConfig}
+                chartConfig={mainFacet.chartConfig}
             />
-        </div> : <div/>;
+        </div>
+    )
 }

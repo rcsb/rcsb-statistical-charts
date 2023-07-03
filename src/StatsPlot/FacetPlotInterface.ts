@@ -9,9 +9,11 @@ import {ChartDataProviderInterface} from "@rcsb/rcsb-charts/lib/RcsbChartDataPro
 
 export interface FacetPlotInterface {
     /**Principal feature displayed in the chart defined as search Facet. It defines the magnitude associated to the domain axis*/
-    firstDim: AttributeFacetType | FilterFacetType;
+    // firstDim: AttributeFacetType | FilterFacetType;
+    firstDim: any;
     /**Histogram, barplot or pie (display not implemented)*/
-    chartType: ChartType;
+    // chartType: ChartType;
+    chartType: ChartType | undefined;
     /**Granularity of the distribution: entry, polymer-entity, assembly, ...*/
     returnType: ReturnType;
     /**Second feature displayed in the chart defined as search Facet. It is displayed as stack bars*/
