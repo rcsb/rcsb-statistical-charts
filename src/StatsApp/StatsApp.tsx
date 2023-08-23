@@ -14,7 +14,7 @@ export function StatsApp(){
     if (!mainFacet.facet || !mainFacet.chartType) return null;
 
     return (
-        <div>
+        <div className="StatsApp Component">
             <div style={{marginBottom:20}}>
                 {/* Select 1st Dataset */}
                 <label>Label1</label>
