@@ -3,7 +3,7 @@ import {AggregationType, Interval, Service, Type} from "@rcsb/rcsb-api-tools/bui
 import {ChartConfigInterface, ChartType} from "@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartConfigInterface";
 import {StatsFacetInterface} from "./StatsFacetInterface";
 
-const globalChatConfig: ChartConfigInterface = {
+const globalChartConfig: ChartConfigInterface = {
     chartDisplayConfig: {
         constWidth: 800,
         constHeight: 600
@@ -25,7 +25,7 @@ const RELEASE_DATE: StatsFacetInterface = {
         min_interval_population: 0
     },
     chartConfig: {
-        ...globalChatConfig
+        ...globalChartConfig
     }
 };
 
@@ -39,7 +39,7 @@ const EXPL_METHOD: StatsFacetInterface = {
         attribute: RcsbSearchMetadata.Exptl.Method.path
     },
     chartConfig: {
-        ...globalChatConfig,
+        ...globalChartConfig,
         mostPopulatedGroups: 3
     }
 };
@@ -54,7 +54,7 @@ const ORGANISM: StatsFacetInterface = {
         attribute: RcsbSearchMetadata.RcsbEntitySourceOrganism.NcbiScientificName.path,
     },
     chartConfig: {
-        ...globalChatConfig,
+        ...globalChartConfig,
         mostPopulatedGroups: 10
     }
 };
@@ -102,7 +102,7 @@ const CATH_DOMAIN: StatsFacetInterface = {
         }]
     },
     chartConfig: {
-        ...globalChatConfig,
+        ...globalChartConfig,
         mostPopulatedGroups: 10
     }
 };
