@@ -31,9 +31,14 @@ import {
     ChartJsHistogramComponent
 } from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/ChatJsImplementations/ChartJsHistogramComponent";
 
+const viewSettingList = ["annual", "cumulative"]
+// const menuStyle = {width: 200, height: '100%', outline: '1px solid red', textAlign: 'center'}
+// const headerStyle = {width:'50%'}
+
 export function FacetPlot(props: FacetPlotInterface) {
 
     const [data, setData] = useState<ChartObjectInterface[][]>([]);
+    const [viewSetting, setViewSetting] = useState<string>(viewSettingList[0]);
     const [categoriesToHide, setCategoriesToHide] = useState<string[]>([])
 
     // let categoryMap:any = {};
@@ -55,85 +60,125 @@ export function FacetPlot(props: FacetPlotInterface) {
         chartFacets(props).then(data=> setData(data));
     }, [props]);
 
-    let colStyle = {display:"flex", justifyContent:"space-around"}
-    // let menuStyle = {width: 200, height: '100%', outline: '1px solid red', textAlign: 'center'}
-    let headerStyle = {width:'50%'}
+    const showButtonChecked = categoriesToHide.length === 0
+    const hideButtonChecked = categoriesToHide.length === categories.length
 
-    let showButtonChecked = categoriesToHide.length === 0
-    let hideButtonChecked = categoriesToHide.length === categories.length
-
-    const dataToDisplay = data.map(
+    let dataToDisplay = data.map(
         dataSet => { 
             return dataSet.filter(
                 dataPoint => {
-                    let name = dataPoint?.objectConfig?.objectId
-                    console.log("name", name)
+                    // Filter out any categories that are to be hidden
                     return !categoriesToHide.includes(dataPoint?.objectConfig?.objectId[1])
                 }
             )
         }
     )
 
-    console.log("data",data)
-    console.log("dataToDisplay",dataToDisplay)
-    console.log("categories",categories)
+    console.log("dataToDisplay", dataToDisplay)
+    if( viewSetting === 'cumulative' ){
+        const isNestedArray = Array.isArray(dataToDisplay[0]) // Check if 2d array
+        if (isNestedArray){
+            dataToDisplay = dataToDisplay.map(transformCategoryToCumulative) // map outer array, transform inner array
+        }else{
+            dataToDisplay = transformCategoryToCumulative(dataToDisplay) // transform array
+        }
+    }
+
 
     return (
-        <div style={{display:"flex", flexDirection:"row", }}>
+        <div className='FacetPlot Component' style={{display:'flex', flexDirection:'row', overflow: 'hidden' }}>
+            {/* Chart */}
             <ChartComponent
                 data={dataToDisplay}
                 chartComponentImplementation={props.chartType == ChartType.histogram ? ChartJsHistogramComponent : ChartJsBarComponent}
                 dataProvider={props.chartType == ChartType.histogram ? new HistogramChartDataProvider() : new BarChartDataProvider()}
                 chartConfig={props.chartConfig}
             />
-            <div style={{width: 200, height: '100%', outline: '1px solid red', textAlign: 'center'}}>
-                <div style={colStyle}>
-                    <div style={headerStyle}>Annual</div>
-                    <div style={headerStyle}>Cumulative</div>
-                </div>
-                <div style={colStyle}>
-                    <label>Show All:</label><input type="checkbox" checked={showButtonChecked} onChange={(e)=>{
-                        if(e.target.checked) showAllCategories()
-                    }}></input>
-                    <label>Hide All:</label><input type="checkbox" checked={hideButtonChecked} onChange={(e)=>{
-                        if(e.target.checked) hideAllCategories()
-                    }}></input>           
-                </div>
+            {/* Sidebar */}
+            <div style={{ outline: '1px solid red', textAlign: 'center'}}>
 
-                {
-                    categories.map((c, index) => {
-                        let isHidden = categoriesToHide.includes(c.name)
-                        console.log("c", c)
-                        const checkboxStyle = {
-                            display: 'none'                             
-                        }
-                        const labelStyle = {
-                            border: `3px solid ${c.color}`,
-                            color: c.color,
-                            backgroundColor: isHidden ? 'transparent' : c.color,
-                            width: `15px`,
-                            height: `15px`,
-                            borderRadius: `50%`,
-                            display: `inline-block`,
-                            cursor: `pointer`,   
-                        }
+                {/* Annual or Cumulative Setting */}
+                <select onChange={(e)=>{setViewSetting(e.target.value)}} value={viewSetting}>
+                    {viewSettingList.map(item => <option value={item}>{item}</option>)}
+                </select>
 
-                        return (
-                            <div>
-                                <div>
-                                    {c.name} ({c.count}) {c.color} 
-                                    <label style={labelStyle} htmlFor={`${index}`} onClick={()=>toggleCategory(c.name)} > </label>
-                                    <input name={`${index}`} style={checkboxStyle} type="checkbox" checked={!isHidden} onClick={()=>toggleCategory(c.name)} />
-                                </div>
-                            </div>
-                        )
-                    })
-                }
+                {/* Hide/Show All Categories */}
+                <div>
+                    <div>
+                        <label>Show All:</label><input type="checkbox" checked={showButtonChecked} onChange={(e) => {
+                            if (e.target.checked) showAllCategories()
+                        }}></input>
+                    </div>
+                    <div>
+                        <label>Hide All:</label><input type="checkbox" checked={hideButtonChecked} onChange={(e) => {
+                            if (e.target.checked) hideAllCategories()
+                        }}></input>
+                    </div>
+                </div>
+                {/* Hide/Show Categories */}
+                { categories.map(createCategoryHTML) }
             </div>
         </div>
     );
 
+    // Helper function
+    function createCategoryHTML(c:CategoryListType, index:number){
+        let isHidden = categoriesToHide.includes(c.name)
+        const checkboxStyle = {
+            display: 'none'                             
+        }
+        const labelStyle = {
+            border: `3px solid ${c.color}`,
+            color: c.color,
+            backgroundColor: isHidden ? 'transparent' : c.color,
+            width: `15px`,
+            height: `15px`,
+            borderRadius: `50%`,
+            display: `inline-block`,
+            cursor: `pointer`,   
+        }
+    
+        return (
+            <div className="categories.map" key={index}>
+                {c.name} ({c.count}) {c.color} 
+                <label style={labelStyle} htmlFor={`${index}`} onClick={()=>toggleCategory(c.name)} > </label>
+                <input name={`${index}`} style={checkboxStyle} type="checkbox" checked={!isHidden} onChange={()=>toggleCategory(c.name)} />
+            </div>
+        )
+    }
+
+    // @#@#@# start here tomorrow
+    function transformCategoryToCumulative(category:any[]):any[]{
+
+        function createChartObject<ChartObjectInterface>(label: string|number, population:number, objectId:any, color:string){
+            return {
+                label,
+                population,
+                objectConfig:{
+                    objectId,
+                    color
+                }
+            }
+        }
+        
+        // iterate over outer level
+
+        let totalPopulation = 0
+
+        return category.map((details:any, index:any, arr:any) =>{
+            // console.log("details, index", details, index)
+            let {label, population, objectConfig: {objectId, color}} = details
+            // const previousDetails = arr[index - 1]
+            // console.log(`total for ${label}`, population, previousDetails?.population, population + previousDetails?.population)
+            totalPopulation += population
+            return createChartObject(label, totalPopulation, objectId, color)
+        })
+
+    }
+
 }
+
+
 
 export function ChartFacetPlot(props: ChartFacetPlotInterface) {
 
@@ -144,7 +189,7 @@ export function ChartFacetPlot(props: ChartFacetPlotInterface) {
     }, [props]);
 
     return (
-        <div>
+        <div className="ChartFacetPlot Component">
             <ChartComponent
                 data={data}
                 chartComponentImplementation={props.chartComponent}
@@ -176,16 +221,19 @@ async function chartFacets(props: Omit<FacetPlotInterface, "chartType">): Promis
     });
 
     // Copy the firstDim
-    const facet: AttributeFacetType | FilterFacetType = cloneDeep(props.firstDim);
+    const clonedFacet: AttributeFacetType | FilterFacetType = cloneDeep(props.firstDim);
+
+    console.log("buildMultiFacet", props.secondDim, clonedFacet)
+
     if(props.secondDim) // Mutate facet if 2nd dimension
-        buildMultiFacet(props.secondDim, facet); // recursively adds 
+        buildMultiFacet(props.secondDim, clonedFacet); // recursively adds 
 
     // Create request query
     const searchRequest: SearchRequestType = buildRequestFromSearchQuery(
         searchQuery,
         props.returnType,
         {
-            facets: [facet]
+            facets: [clonedFacet]
         }
     );
 
