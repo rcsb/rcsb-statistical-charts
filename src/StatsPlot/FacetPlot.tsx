@@ -41,6 +41,8 @@ export function FacetPlot(props: FacetPlotInterface) {
     const [viewSetting, setViewSetting] = useState<string>(viewSettingList[0]);
     const [categoriesToHide, setCategoriesToHide] = useState<string[]>([])
 
+    const isHistogram = (props.chartType == ChartType.histogram)
+
     // let categoryMap:any = {};
     let categories: any[] = createCategoryListFromData(data)
 
@@ -57,6 +59,7 @@ export function FacetPlot(props: FacetPlotInterface) {
 
     useEffect(()=>{
         setData([]);
+        setViewSetting(viewSettingList[0])
         chartFacets(props).then(data=> setData(data));
     }, [props]);
 
@@ -74,33 +77,41 @@ export function FacetPlot(props: FacetPlotInterface) {
         }
     )
 
-    console.log("dataToDisplay", dataToDisplay)
-    if( viewSetting === 'cumulative' ){
+    if( viewSetting === 'cumulative' && isHistogram ){
         const isNestedArray = Array.isArray(dataToDisplay[0]) // Check if 2d array
         if (isNestedArray){
-            dataToDisplay = dataToDisplay.map(transformCategoryToCumulative) // map outer array, transform inner array
+            dataToDisplay = dataToDisplay.map(category => transformCategoryToCumulative(category))
         }else{
             dataToDisplay = transformCategoryToCumulative(dataToDisplay) // transform array
         }
     }
 
+    const chartType = isHistogram
+        ? ChartJsHistogramComponent 
+        : ChartJsBarComponent
+    const chartDataProvider = isHistogram
+        ? new HistogramChartDataProvider() 
+        : new BarChartDataProvider()
 
     return (
         <div className='FacetPlot Component' style={{display:'flex', flexDirection:'row', overflow: 'hidden' }}>
             {/* Chart */}
             <ChartComponent
                 data={dataToDisplay}
-                chartComponentImplementation={props.chartType == ChartType.histogram ? ChartJsHistogramComponent : ChartJsBarComponent}
-                dataProvider={props.chartType == ChartType.histogram ? new HistogramChartDataProvider() : new BarChartDataProvider()}
+                chartComponentImplementation={chartType}
+                dataProvider={chartDataProvider}
                 chartConfig={props.chartConfig}
             />
             {/* Sidebar */}
-            <div style={{ outline: '1px solid red', textAlign: 'center'}}>
+            <div style={{ outline: '1px solid red', textAlign: 'left'}}>
 
                 {/* Annual or Cumulative Setting */}
-                <select onChange={(e)=>{setViewSetting(e.target.value)}} value={viewSetting}>
-                    {viewSettingList.map(item => <option value={item}>{item}</option>)}
-                </select>
+                {
+                    isHistogram && 
+                    <select onChange={(e)=>{setViewSetting(e.target.value)}} value={viewSetting}>
+                        {viewSettingList.map(item => <option value={item}>{item}</option>)}
+                    </select>
+                }
 
                 {/* Hide/Show All Categories */}
                 <div>
@@ -116,7 +127,9 @@ export function FacetPlot(props: FacetPlotInterface) {
                     </div>
                 </div>
                 {/* Hide/Show Categories */}
-                { categories.map(createCategoryHTML) }
+                <div style={{height:"500px", overflowY: "auto", padding: "10px 0"}}>
+                    { categories.map(createCategoryHTML) }
+                </div>
             </div>
         </div>
     );
@@ -128,21 +141,39 @@ export function FacetPlot(props: FacetPlotInterface) {
             display: 'none'                             
         }
         const labelStyle = {
+            position: 'absolute',
+            top: 0,
+            right: 0,
             border: `3px solid ${c.color}`,
+            marginLeft: `5px`,
             color: c.color,
             backgroundColor: isHidden ? 'transparent' : c.color,
             width: `15px`,
             height: `15px`,
             borderRadius: `50%`,
             display: `inline-block`,
-            cursor: `pointer`,   
-        }
+            cursor: `pointer`, 
+            verticalAlign: `middle`,
+        } as React.CSSProperties
+
+        const categoryContainerStyle = {
+            position: `relative`,
+            width: `calc(100% - 15px)`
+        }as React.CSSProperties
+
+        const categoryStyle = {
+            color: c.color,  
+            textOverflow: `ellipsis`, 
+            width: `calc(100% - 15px)`
+        } as React.CSSProperties
     
         return (
-            <div className="categories.map" key={index}>
-                {c.name} ({c.count}) {c.color} 
-                <label style={labelStyle} htmlFor={`${index}`} onClick={()=>toggleCategory(c.name)} > </label>
-                <input name={`${index}`} style={checkboxStyle} type="checkbox" checked={!isHidden} onChange={()=>toggleCategory(c.name)} />
+            <div className='categories.map' style={categoryContainerStyle} key={index}>
+                <div style={categoryStyle} onClick={()=>toggleCategory(c.name)} >
+                    {c.name} 
+                    <label style={labelStyle}> </label>
+                </div>
+                <input name={`${index}`} style={checkboxStyle} type='checkbox' checked={!isHidden} onChange={()=>toggleCategory(c.name)} />
             </div>
         )
     }
@@ -161,11 +192,10 @@ export function FacetPlot(props: FacetPlotInterface) {
             }
         }
         
-        // iterate over outer level
-
         let totalPopulation = 0
 
-        return category.map((details:any, index:any, arr:any) =>{
+        // update all values to be cumulative to that point
+        const result = category.map((details:any, index:any, arr:any) =>{
             // console.log("details, index", details, index)
             let {label, population, objectConfig: {objectId, color}} = details
             // const previousDetails = arr[index - 1]
@@ -173,6 +203,8 @@ export function FacetPlot(props: FacetPlotInterface) {
             totalPopulation += population
             return createChartObject(label, totalPopulation, objectId, color)
         })
+
+        return result
 
     }
 
@@ -348,12 +380,14 @@ type CategoryDictType = {
 };
 
 const COLORS: string[] = [
-    "#718de8",
-    "#2fad30",
-    "#e71f8a",
-    "#f60505",
-    "#a27206",
-    "#60e5bd",
-    "#85ff34",
-    "#ea6c05"
+    '#51A2F0',
+    '#54F77B',
+    '#E0D557',
+    '#F79654',
+    '#ED51DC',
+    '#4DF0AD',
+    '#DFF74F',
+    '#E1A754',
+    '#F74F7D',
+    '#664CED',
 ]
