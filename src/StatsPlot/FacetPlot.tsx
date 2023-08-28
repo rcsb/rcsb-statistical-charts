@@ -418,14 +418,11 @@ type CategoryDictType = {
 };
 
 const COLORS: string[] = [
-    '#51A2F0',
-    '#54F77B',
-    '#E0D557',
-    '#F79654',
-    '#ED51DC',
-    '#4DF0AD',
-    '#DFF74F',
-    '#E1A754',
-    '#F74F7D',
-    '#664CED',
+    '#F05039',
+    '#A8B6CC',
+    '#E57A77',
+    '#7CA1CC',
+    '#EEBAB4',
+    '#3D65A5',
+    '#1F449C',
 ]
