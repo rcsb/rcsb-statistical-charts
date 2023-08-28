@@ -79,10 +79,12 @@ export function FacetPlot(props: FacetPlotInterface) {
 
     if( viewSetting === 'cumulative' && isHistogram ){
         const isNestedArray = Array.isArray(dataToDisplay[0]) // Check if 2d array
-        if (isNestedArray){
+        if (isNestedArray){ // 2 array dimensions
+            // Add empty dataPoints for labels that have no data.
+            dataToDisplay = addDataPointsForAllLabels(dataToDisplay)
             dataToDisplay = dataToDisplay.map(category => transformCategoryToCumulative(category))
-        }else{
-            dataToDisplay = transformCategoryToCumulative(dataToDisplay) // transform array
+        }else{ // 1 array dimension
+            dataToDisplay = transformCategoryToCumulative(dataToDisplay)
         }
     }
 
@@ -178,7 +180,45 @@ export function FacetPlot(props: FacetPlotInterface) {
         )
     }
 
-    // @#@#@# start here tomorrow
+    function addDataPointsForAllLabels<ChartObjectInterface>(categories: ChartObjectInterface[]){
+
+        const allLabels:any = creatListOfLabels()
+        return addDataPointsPerLabel()
+
+        function creatListOfLabels (){
+            let labelList:string[] = []
+            categories.forEach((category:any)  => {
+                category.forEach((dataPoint:any) => {
+                    if(!labelList.includes(dataPoint.label)) labelList.push(dataPoint.label)
+                })
+            })
+            labelList.sort()
+            return labelList
+        }
+
+        function addDataPointsPerLabel(){
+            return categories.map((category: any, index: any) => {
+                let lastMatchedDataPoint:any = null
+                return allLabels.flatMap((label:any) => {
+                    // Find dataPoint with matching label
+                    const matchedDataPoint = category.find((dataPoint:any) => dataPoint.label === label)
+                    if(matchedDataPoint) {
+                        // Use that dataPoint
+                        lastMatchedDataPoint = matchedDataPoint
+                        return matchedDataPoint // new label
+                    } else if (lastMatchedDataPoint) {
+                        // No match? Use last matched dataPoint
+                        return {...lastMatchedDataPoint, population: 0, label}
+                    }else {
+                        // Early entries are left blank
+                        return []
+                    }
+                })
+            })
+        }
+    }
+
+
     function transformCategoryToCumulative(category:any[]):any[]{
 
         function createChartObject<ChartObjectInterface>(label: string|number, population:number, objectId:any, color:string){
@@ -254,8 +294,6 @@ async function chartFacets(props: Omit<FacetPlotInterface, "chartType">): Promis
 
     // Copy the firstDim
     const clonedFacet: AttributeFacetType | FilterFacetType = cloneDeep(props.firstDim);
-
-    console.log("buildMultiFacet", props.secondDim, clonedFacet)
 
     if(props.secondDim) // Mutate facet if 2nd dimension
         buildMultiFacet(props.secondDim, clonedFacet); // recursively adds 
