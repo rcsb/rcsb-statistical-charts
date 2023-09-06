@@ -22,8 +22,8 @@ export function StatsApp(){
             <div style={{marginBottom:20}}>
                 {/* Select 1st Dataset */}
                 <div className="row mb-1">
-                    <div className="btn-group">
-                        <div className={`btn`}>1st Dimension</div>
+                    <div className="btn-group" style={{outline: '1px solid black'}}>
+                        <div className={`btn`}>1st Dimension:</div>
                         {
                             FACET_STORE.map((facet, index)=>{
                                 let buttonClass = index === opt1 ? 'btn-primary' : 'btn-light'
@@ -33,9 +33,9 @@ export function StatsApp(){
                     </div>
                 </div>
                 {/* Select 2nd Dataset */}
-                <div className="row">
-                    <div className="btn-group">
-                        <div className={`btn`}>2nd Dimension</div>
+                <div className="row mb-1">
+                    <div className="btn-group" style={{outline: '1px solid black'}}>
+                        <div className={`btn`}>2nd Dimension:</div>
                         {
                             ADDITIONAL_FACET_STORE.map((facet, index)=>{
                                 let buttonClass = index === opt2 ? 'btn-primary' : 'btn-light'
@@ -44,7 +44,9 @@ export function StatsApp(){
                         }
                     </div>
                 </div>
-                <span><button onClick={() => {saveTargetAsImage(chartRef.current, CHART_FILE_NAME)}}>Save</button> Chart as Image</span>
+                <div className="d-flex justify-content-start">
+                    <div className="btn btn-success" style={{width: '200px'}} onClick={() => {saveTargetAsImage(chartRef.current, CHART_FILE_NAME)}}>Save Chart as Image</div>
+                </div>
                 
             </div>
             {/* Draw the Chart */}
