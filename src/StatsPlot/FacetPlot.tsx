@@ -116,7 +116,6 @@ export function FacetPlot(props: FacetPlotInterface) {
                             })}
                         </div>
                     </div>
-               
                 }
 
                 {/* Hide/Show All Categories */}
