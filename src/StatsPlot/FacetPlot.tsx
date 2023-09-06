@@ -30,6 +30,7 @@ import {
 import {
     ChartJsHistogramComponent
 } from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/ChatJsImplementations/ChartJsHistogramComponent";
+import {getPalettes} from '../utils/IMB_COLORS'
 
 const viewSettingList = ["annual", "cumulative"]
 // const menuStyle = {width: 200, height: '100%', outline: '1px solid red', textAlign: 'center'}
@@ -62,9 +63,6 @@ export function FacetPlot(props: FacetPlotInterface) {
         setViewSetting(viewSettingList[0])
         chartFacets(props).then(data=> setData(data));
     }, [props]);
-
-    const showButtonChecked = categoriesToHide.length === 0
-    const hideButtonChecked = categoriesToHide.length === categories.length
 
     let dataToDisplay = data.map(
         dataSet => { 
@@ -110,22 +108,26 @@ export function FacetPlot(props: FacetPlotInterface) {
                 {/* Annual or Cumulative Setting */}
                 {
                     isHistogram && 
-                    <select onChange={(e)=>{setViewSetting(e.target.value)}} value={viewSetting}>
-                        {viewSettingList.map(item => <option value={item}>{item}</option>)}
-                    </select>
+                    <div className="d-flex justify-content-center">
+                        <div className="btn-group">
+                            {viewSettingList.map(item => {
+                                const btnClass = item === viewSetting ? 'btn-primary' : 'btn-light'
+                                return <div className={`btn ${btnClass}`} key={item} onClick={()=>setViewSetting(item)}>{item}</div>
+                            })}
+                        </div>
+                    </div>
+               
                 }
 
                 {/* Hide/Show All Categories */}
-                <div>
-                    <div>
-                        <label>Show All:</label><input type="checkbox" checked={showButtonChecked} onChange={(e) => {
-                            if (e.target.checked) showAllCategories()
-                        }}></input>
-                    </div>
-                    <div>
-                        <label>Hide All:</label><input type="checkbox" checked={hideButtonChecked} onChange={(e) => {
-                            if (e.target.checked) hideAllCategories()
-                        }}></input>
+                <div className="d-flex justify-content-center">
+                    <div className="btn-group m-1">
+                        <div className={`btn btn-success`} onClick={(e) => showAllCategories()}>
+                            Show All
+                        </div>
+                        <div className={`btn btn-warning`} onClick={(e) => hideAllCategories()}>
+                            Hide All
+                        </div>
                     </div>
                 </div>
                 {/* Hide/Show Categories */}
@@ -417,12 +419,14 @@ type CategoryDictType = {
     [key: string]:CategoryDictItemType
 };
 
-const COLORS: string[] = [
-    '#F05039',
-    '#A8B6CC',
-    '#E57A77',
-    '#7CA1CC',
-    '#EEBAB4',
-    '#3D65A5',
-    '#1F449C',
-]
+// Array argument is for brightness across colors
+let COLORS:string[] = getPalettes([7,5,3])
+// const COLORS: string[] = [
+//     '#F05039',
+//     '#A8B6CC',
+//     '#E57A77',
+//     '#7CA1CC',
+//     '#EEBAB4',
+//     '#3D65A5',
+//     '#1F449C',
+// ]
