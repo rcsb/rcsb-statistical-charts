@@ -58,7 +58,7 @@ export function StatsApp(){
                 chartConfig={{
                     ...mainFacet.chartConfig,
                     // @#@#@# sort of works, errors when clicking on background :(
-                    // barClickCallback
+                    barClickCallback
                 }}
             />
         </div>
@@ -66,8 +66,8 @@ export function StatsApp(){
 }
 
 // @#@#@# not working correctly yet
-// function barClickCallback(datum:any, data:any, event:any){
-//     try{
-//         console.log("barClickCallback", datum, data, event)
-//     }catch(e){console.log("error", e)}
-// }
+function barClickCallback(datum:any, data:any, event:any){
+    try{
+        console.log("barClickCallback", datum, data, event)
+    }catch(e){console.log("error", e)}
+}
