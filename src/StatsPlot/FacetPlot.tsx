@@ -43,6 +43,7 @@ export function FacetPlot(props: FacetPlotInterface) {
     const [categoriesToHide, setCategoriesToHide] = useState<string[]>([])
 
     const isHistogram = (props.chartType == ChartType.histogram)
+    const is2dData = props.secondDim ? true : false
 
     // let categoryMap:any = {};
     let categories: any[] = createCategoryListFromData(data)
@@ -75,22 +76,31 @@ export function FacetPlot(props: FacetPlotInterface) {
         }
     )
 
-    if( viewSetting === 'cumulative' && isHistogram ){
-        const isNestedArray = Array.isArray(dataToDisplay[0]) // Check if 2d array
-        if (isNestedArray){ // 2 array dimensions
-            // Add empty dataPoints for labels that have no data.
-            dataToDisplay = addDataPointsForAllLabels(dataToDisplay)
-            dataToDisplay = dataToDisplay.map(category => transformCategoryToCumulative(category))
-        }else{ // 1 array dimension
-            dataToDisplay = transformCategoryToCumulative(dataToDisplay)
+    // Mutate dataToDisplay when cumulative
+    if(viewSetting === 'cumulative' && isHistogram){
+        if (is2dData) { // 2 array dimensions
+            // Find earliest year and latest year
+            let [start, end]: number[] = findStartAndEndYearsForAll(dataToDisplay)
+            // Add empty data points for all years between
+            if (start ?? end ?? true) {
+                const dataWithEmptyYears: any[] = dataToDisplay.map(category => addEmptyYears(category, start, end))
+                dataToDisplay = dataWithEmptyYears.map(category => transformToCumulative(category))
+            }
+        } else { // 1 array dimension
+
+            let [start, end] = findStartAndEndYears(dataToDisplay)
+            if (start ?? end ?? true) {
+                const dataWithEmptyYears: any[] = addEmptyYears(dataToDisplay, start, end)
+                dataToDisplay = transformToCumulative(dataWithEmptyYears)
+            }
         }
     }
 
     const chartType = isHistogram
-        ? ChartJsHistogramComponent 
+        ? ChartJsHistogramComponent
         : ChartJsBarComponent
     const chartDataProvider = isHistogram
-        ? new HistogramChartDataProvider() 
+        ? new HistogramChartDataProvider()
         : new BarChartDataProvider()
 
     return (
@@ -119,16 +129,21 @@ export function FacetPlot(props: FacetPlotInterface) {
                 }
 
                 {/* Hide/Show All Categories */}
-                <div className="d-flex justify-content-center">
-                    <div className="btn-group m-1">
-                        <div className={`btn btn-success`} onClick={(e) => showAllCategories()}>
-                            Show All
-                        </div>
-                        <div className={`btn btn-warning`} onClick={(e) => hideAllCategories()}>
-                            Hide All
+                {
+                    isHistogram &&
+                    is2dData &&
+                    <div className="d-flex justify-content-center">
+                        <div className="btn-group m-1">
+                            <div className={`btn btn-success`} onClick={(e) => showAllCategories()}>
+                                Show All
+                            </div>
+                            <div className={`btn btn-warning`} onClick={(e) => hideAllCategories()}>
+                                Hide All
+                            </div>
                         </div>
                     </div>
-                </div>
+                }
+
                 {/* Hide/Show Categories */}
                 <div style={{height:"500px", overflowY: "auto", padding: "10px 0"}}>
                     { categories.map(createCategoryHTML) }
@@ -179,74 +194,6 @@ export function FacetPlot(props: FacetPlotInterface) {
                 <input name={`${index}`} style={checkboxStyle} type='checkbox' checked={!isHidden} onChange={()=>toggleCategory(c.name)} />
             </div>
         )
-    }
-
-    function addDataPointsForAllLabels<ChartObjectInterface>(categories: ChartObjectInterface[]){
-
-        const allLabels:any = creatListOfLabels()
-        return addDataPointsPerLabel()
-
-        function creatListOfLabels (){
-            let labelList:string[] = []
-            categories.forEach((category:any)  => {
-                category.forEach((dataPoint:any) => {
-                    if(!labelList.includes(dataPoint.label)) labelList.push(dataPoint.label)
-                })
-            })
-            labelList.sort()
-            return labelList
-        }
-
-        function addDataPointsPerLabel(){
-            return categories.map((category: any, index: any) => {
-                let lastMatchedDataPoint:any = null
-                return allLabels.flatMap((label:any) => {
-                    // Find dataPoint with matching label
-                    const matchedDataPoint = category.find((dataPoint:any) => dataPoint.label === label)
-                    if(matchedDataPoint) {
-                        // Use that dataPoint
-                        lastMatchedDataPoint = matchedDataPoint
-                        return matchedDataPoint // new label
-                    } else if (lastMatchedDataPoint) {
-                        // No match? Use last matched dataPoint
-                        return {...lastMatchedDataPoint, population: 0, label}
-                    }else {
-                        // Early entries are left blank
-                        return []
-                    }
-                })
-            })
-        }
-    }
-
-
-    function transformCategoryToCumulative(category:any[]):any[]{
-
-        function createChartObject<ChartObjectInterface>(label: string|number, population:number, objectId:any, color:string){
-            return {
-                label,
-                population,
-                objectConfig:{
-                    objectId,
-                    color
-                }
-            }
-        }
-        
-        let totalPopulation = 0
-
-        // update all values to be cumulative to that point
-        const result = category.map((details:any, index:any, arr:any) =>{
-            // console.log("details, index", details, index)
-            let {label, population, objectConfig: {objectId, color}} = details
-            // const previousDetails = arr[index - 1]
-            // console.log(`total for ${label}`, population, previousDetails?.population, population + previousDetails?.population)
-            totalPopulation += population
-            return createChartObject(label, totalPopulation, objectId, color)
-        })
-
-        return result
-
     }
 
 }
@@ -402,6 +349,78 @@ function createCategoryListFromData(data:ChartObjectInterface[][]):CategoryListT
     categories.sort( (a,b) => {return b.count - a.count} )
 
     return categories
+}
+
+
+
+// Helper functions for cumulative view ////////////////////////////////////////////////////////////
+function findStartAndEndYearsForAll(categories: any[]): number[] {
+    let allYears: number[] = categories.map(category => findStartAndEndYears(category)).flat()
+    if (allYears.length === 0) return []
+    let start = Math.min(...allYears)
+    let end = Math.max(...allYears)
+    return [start, end]
+}
+
+function findStartAndEndYears(category: any[]): number[] {
+    let allYears: number[] = category.map(c => Number(c.label))
+    if (allYears.length === 0) return []
+    let start = Math.min(...allYears)
+    let end = Math.max(...allYears)
+    return [start, end]
+}
+
+function addEmptyYears(category: any[], start: number = 1800, end: number = new Date().getFullYear()
+): any[] {
+
+    // Create array starting at "start" and ending at "end" in values
+    let allYears = []
+    for (let y = start; y <= end; y++) { allYears.push(y) }
+    // Create dictionary containing years and associated data
+    let yearDataDict = category.reduce((p, n) => {
+        p[n.label] = n
+        return p
+    }, {})
+
+    let lastValidYear: any = {}
+
+    let result: any[] = allYears.map(year => {
+        let currentYear = yearDataDict[year]
+        if (currentYear) {
+            lastValidYear = currentYear
+            return currentYear
+        } else {
+            let emptyYear = createChartObject(year.toString(), 0, lastValidYear?.objectConfig?.objectId || [], lastValidYear?.objectConfig?.color || "")
+            return emptyYear
+        }
+    })
+
+    return result
+}
+
+function transformToCumulative(category: any[]): any[] {
+
+    let totalPopulation = 0
+
+    // update all values to be cumulative to that point
+    const result = category.map((details: any) => {
+        let { label, population, objectConfig: { objectId, color } } = details
+        totalPopulation += population
+        return createChartObject(label, totalPopulation, objectId, color)
+    })
+
+    return result
+}
+
+function createChartObject<ChartObjectInterface>(label: string | number = '', population: number = 0, objectId: any = [], color: string = '') {
+    return {
+        label,
+        population,
+        objectConfig: {
+            objectId,
+            color
+        }
+    }
 }
 
 type CategoryListType = {
