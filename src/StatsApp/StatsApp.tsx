@@ -59,6 +59,12 @@ export function StatsApp(){
                 returnType={ReturnType.Entry}
                 chartConfig={{
                     ...mainFacet.chartConfig,
+                    histogramBinIncrement: 1,
+                    legendPosition: 'bottom',
+                    legendAlignment: 'center'
+                    // legend:{
+                    //     position: 'right'
+                    // }
                 }}
             />
         </div>

@@ -74,7 +74,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                 }
             )
         }
-    )
+    ).filter(arr => arr.length !== 0)
 
     // Mutate dataToDisplay when cumulative
     if(viewSetting === 'cumulative' && isHistogram){
