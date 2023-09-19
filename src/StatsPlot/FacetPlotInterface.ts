@@ -40,3 +40,19 @@ export interface ChartFacetPlotInterface {
     /**Configuration for the chart*/
     chartConfig?: ChartConfigInterface;
 }
+
+export type CategoryListType = {
+    name: string,
+    count: number,
+    color: string
+};
+
+export type CategoryDictItemType = {
+    year: number,
+    count: number,
+    color: string
+};
+
+export type CategoryDictType = {
+    [key: string]:CategoryDictItemType
+};

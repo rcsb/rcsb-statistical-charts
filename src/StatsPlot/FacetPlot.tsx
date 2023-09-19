@@ -31,6 +31,14 @@ import {
     ChartJsHistogramComponent
 } from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/ChatJsImplementations/ChartJsHistogramComponent";
 import {getPalettes} from '../utils/IMB_COLORS'
+import {
+    createCategoryListFromData,
+    findStartAndEndYearsForAll,
+    // findStartAndEndYears,
+    addEmptyYears,
+    transformToCumulative
+} from './facetPlotHelpers'
+import {CategoryListType} from './FacetPlotInterface'
 
 const viewSettingList = ["annual", "cumulative"]
 // const menuStyle = {width: 200, height: '100%', outline: '1px solid red', textAlign: 'center'}
@@ -77,24 +85,16 @@ export function FacetPlot(props: FacetPlotInterface) {
     ).filter(arr => arr.length !== 0)
 
     // Mutate dataToDisplay when cumulative
-    if(viewSetting === 'cumulative' && isHistogram){
-        if (is2dData) { // 2 array dimensions
-            // Find earliest year and latest year
-            let [start, end]: number[] = findStartAndEndYearsForAll(dataToDisplay)
-            // Add empty data points for all years between
-            if (start ?? end ?? true) {
-                const dataWithEmptyYears: any[] = dataToDisplay.map(category => addEmptyYears(category, start, end))
-                dataToDisplay = dataWithEmptyYears.map(category => transformToCumulative(category))
-            }
-        } else { // 1 array dimension
-
-            let [start, end] = findStartAndEndYears(dataToDisplay)
-            if (start ?? end ?? true) {
-                const dataWithEmptyYears: any[] = addEmptyYears(dataToDisplay, start, end)
-                dataToDisplay = transformToCumulative(dataWithEmptyYears)
-            }
+    if(viewSetting === 'cumulative'){
+        console.log("isCumulative")
+        let [start, end]: number[] = findStartAndEndYearsForAll(dataToDisplay)
+        // Add empty data points for all years between
+        if (start ?? end ?? true) {
+            const dataWithEmptyYears: any[] = dataToDisplay.map(category => addEmptyYears(category, start, end))
+            dataToDisplay = dataWithEmptyYears.map(category => transformToCumulative(category))
         }
     }
+    console.log("datatodisplay", dataToDisplay)
 
     const chartType = isHistogram
         ? ChartJsHistogramComponent
@@ -154,7 +154,7 @@ export function FacetPlot(props: FacetPlotInterface) {
 
     // Helper function
     function createCategoryHTML(c:CategoryListType, index:number){
-        let isHidden = categoriesToHide.includes(c.name)
+        let isHidden:boolean = categoriesToHide.includes(c.name)
         const checkboxStyle = {
             display: 'none'                             
         }
@@ -322,120 +322,6 @@ function getFacetName(facet: AttributeFacetType | FilterFacetType): string {
         throw new Error("Multiple facets are not allowed");
     return getFacetName(facet.facets[0]);
 }
-
-function createCategoryListFromData(data:ChartObjectInterface[][]):CategoryListType[]{
-    let categoryDict: CategoryDictType = {};
-    let categories: CategoryListType[] = []
-
-    // Populate categories dict
-    data.length > 1 && data.forEach(item => {
-        item?.forEach(chartObject => {
-            let [year, name, count] = chartObject?.objectConfig?.objectId
-            let color = chartObject?.objectConfig?.color || ""
-            if (categoryDict[name]) {
-                categoryDict[name].count += count
-            } else {
-                categoryDict[name] = { count, year, color }
-            }
-        })
-    })
-
-    // Convert map into array
-    categories = Object.entries(categoryDict).map((item:any) => {
-        return {name:item[0], count: item[1]?.count, color: item[1]?.color}
-    })
-
-    // Sort the categories, highest to lowest
-    categories.sort( (a,b) => {return b.count - a.count} )
-
-    return categories
-}
-
-
-
-// Helper functions for cumulative view ////////////////////////////////////////////////////////////
-function findStartAndEndYearsForAll(categories: any[]): number[] {
-    let allYears: number[] = categories.map(category => findStartAndEndYears(category)).flat()
-    if (allYears.length === 0) return []
-    let start = Math.min(...allYears)
-    let end = Math.max(...allYears)
-    return [start, end]
-}
-
-function findStartAndEndYears(category: any[]): number[] {
-    let allYears: number[] = category.map(c => Number(c.label))
-    if (allYears.length === 0) return []
-    let start = Math.min(...allYears)
-    let end = Math.max(...allYears)
-    return [start, end]
-}
-
-function addEmptyYears(category: any[], start: number = 1800, end: number = new Date().getFullYear()
-): any[] {
-
-    // Create array starting at "start" and ending at "end" in values
-    let allYears = []
-    for (let y = start; y <= end; y++) { allYears.push(y) }
-    // Create dictionary containing years and associated data
-    let yearDataDict = category.reduce((p, n) => {
-        p[n.label] = n
-        return p
-    }, {})
-
-    let lastValidYear: any = {}
-
-    let result: any[] = allYears.map(year => {
-        let currentYear = yearDataDict[year]
-        if (currentYear) {
-            lastValidYear = currentYear
-            return currentYear
-        } else {
-            let emptyYear = createChartObject(year.toString(), 0, lastValidYear?.objectConfig?.objectId || [], lastValidYear?.objectConfig?.color || "")
-            return emptyYear
-        }
-    })
-
-    return result
-}
-
-function transformToCumulative(category: any[]): any[] {
-
-    let totalPopulation = 0
-
-    // update all values to be cumulative to that point
-    const result = category.map((details: any) => {
-        let { label, population, objectConfig: { objectId, color } } = details
-        totalPopulation += population
-        return createChartObject(label, totalPopulation, objectId, color)
-    })
-
-    return result
-}
-
-function createChartObject<ChartObjectInterface>(label: string | number = '', population: number = 0, objectId: any = [], color: string = '') {
-    return {
-        label,
-        population,
-        objectConfig: {
-            objectId,
-            color
-        }
-    }
-}
-
-type CategoryListType = {
-    name: string,
-    count: number,
-    color: string
-};
-type CategoryDictItemType = {
-    year: number,
-    count: number,
-    color: string
-};
-type CategoryDictType = {
-    [key: string]:CategoryDictItemType
-};
 
 // Array argument is for brightness across colors
 let COLORS:string[] = getPalettes([7,5,3])
