@@ -50,8 +50,8 @@ export function FacetPlot(props: FacetPlotInterface) {
     const [viewSetting, setViewSetting] = useState<string>(viewSettingList[0]);
     const [categoriesToHide, setCategoriesToHide] = useState<string[]>([])
 
-    const isHistogram = (props.chartType == ChartType.histogram)
-    const is2dData = props.secondDim ? true : false
+    const isHistogram:boolean = (props.chartType == ChartType.histogram)
+    const is2dData:boolean = props.secondDim ? true : false
 
     // let categoryMap:any = {};
     let categories: any[] = createCategoryListFromData(data)
@@ -104,14 +104,18 @@ export function FacetPlot(props: FacetPlotInterface) {
         : new BarChartDataProvider()
 
     return (
-        <div className='FacetPlot Component' style={{display:'flex', flexDirection:'row', overflow: 'hidden' }}>
+        <div className='FacetPlot Component' style={{display:'flex', flexDirection:'row', flexWrap: 'wrap', outline: '2px dotted red' }}>
             {/* Chart */}
-            <ChartComponent
-                data={dataToDisplay}
-                chartComponentImplementation={chartType}
-                dataProvider={chartDataProvider}
-                chartConfig={props.chartConfig}
-            />
+            <div>
+                <ChartComponent
+                    data={dataToDisplay}
+                    chartComponentImplementation={chartType}
+                    dataProvider={chartDataProvider}
+                    chartConfig={props.chartConfig}
+                />
+                <LegendComponent data={dataToDisplay} />
+            </div>
+
             {/* Sidebar */}
             <div style={{ outline: '1px solid red', textAlign: 'left'}}>
 
@@ -152,7 +156,7 @@ export function FacetPlot(props: FacetPlotInterface) {
         </div>
     );
 
-    // Helper function
+    // Helper function ///////////////////////////////////////////////////////////////////////////////////////////
     function createCategoryHTML(c:CategoryListType, index:number){
         let isHidden:boolean = categoriesToHide.includes(c.name)
         const checkboxStyle = {
@@ -322,6 +326,45 @@ function getFacetName(facet: AttributeFacetType | FilterFacetType): string {
         throw new Error("Multiple facets are not allowed");
     return getFacetName(facet.facets[0]);
 }
+
+// @#@#@# Should probably move to it's own file 
+function LegendComponent(props:any){
+    const data:any = props.data
+    const DEFAULT_ITEM_LIMIT = 20
+    const DEFAULT_COLOR = "#999999"
+    console.log("LegendComponent", DEFAULT_ITEM_LIMIT, DEFAULT_COLOR)
+    console.log("dataToDisplay", data)
+    const [itemLimit, setItemLimit] = useState(DEFAULT_ITEM_LIMIT);
+    // const labelSet = labels.slice(0,itemLimit)
+    const legendItemHTML = data.slice(0,itemLimit).map((item:any) => legendItem(item[0]))
+    // const style = {display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap'}
+    // const itemStyle = {}
+
+    return (<div style={{display:'flex', justifyContent: 'center', alignItems:'center', flexWrap: 'wrap'}}>
+        {legendItemHTML}
+        <br/>
+        {itemLimit < data.length && <div className="btn btn-success" onClick={increaseItemLimit}>See More...</div>}
+        {itemLimit >= data.length && itemLimit > DEFAULT_ITEM_LIMIT && <div className="btn btn-warning" onClick={resetItemLimit}>Hide</div>}
+    </div>)
+
+    function legendItem(item:any) {
+        let label = item?.objectConfig?.objectId[1]
+
+        if(!label) return <></>
+        if(typeof label === 'string'){label = label.toLowerCase()}
+
+        return <div style={{display: 'inline-flex', textTransform: 'capitalize', margin: '.5em'}}>
+            <div 
+                style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '1.5em', width: '50px', marginRight: '.5em', backgroundColor: item?.objectConfig?.color || DEFAULT_COLOR}}>
+            </div>
+            {label}
+        </div>
+    }
+    function increaseItemLimit() { setItemLimit(itemLimit + DEFAULT_ITEM_LIMIT) }
+    function resetItemLimit() { setItemLimit(DEFAULT_ITEM_LIMIT) }
+}
+
+
 
 // Array argument is for brightness across colors
 let COLORS:string[] = getPalettes([7,5,3])
