@@ -336,24 +336,23 @@ function LegendComponent(props:any){
     console.log("dataToDisplay", data)
     const [itemLimit, setItemLimit] = useState(DEFAULT_ITEM_LIMIT);
     // const labelSet = labels.slice(0,itemLimit)
-    const legendItemHTML = data.slice(0,itemLimit).map((item:any) => legendItem(item[0]))
+    const legendItemHTML = data.slice(0,itemLimit).map((item:any, index: number) => legendItem(item[0], index))
     // const style = {display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap'}
     // const itemStyle = {}
 
     return (<div style={{display:'flex', justifyContent: 'center', alignItems:'center', flexWrap: 'wrap'}}>
         {legendItemHTML}
         <br/>
-        {itemLimit < data.length && <div className="btn btn-success" onClick={increaseItemLimit}>See More...</div>}
-        {itemLimit >= data.length && itemLimit > DEFAULT_ITEM_LIMIT && <div className="btn btn-warning" onClick={resetItemLimit}>Hide</div>}
+        {itemLimit < data.length && <div className="btn btn-success" onClick={increaseItemLimit}>See More</div>}
+        {data.length > DEFAULT_ITEM_LIMIT && data.length !== 0 && <div className="btn btn-warning" onClick={resetItemLimit}>Hide</div>}
     </div>)
 
-    function legendItem(item:any) {
+    function legendItem(item:any, index: number) {
         let label = item?.objectConfig?.objectId[1]
-
         if(!label) return <></>
         if(typeof label === 'string'){label = label.toLowerCase()}
 
-        return <div style={{display: 'inline-flex', textTransform: 'capitalize', margin: '.5em'}}>
+        return <div style={{display: 'inline-flex', textTransform: 'capitalize', margin: '.5em'}} key={index}>
             <div 
                 style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '1.5em', width: '50px', marginRight: '.5em', backgroundColor: item?.objectConfig?.color || DEFAULT_COLOR}}>
             </div>

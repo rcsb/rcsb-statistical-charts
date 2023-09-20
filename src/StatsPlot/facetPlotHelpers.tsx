@@ -55,16 +55,18 @@ export function addEmptyYears(category: any[], start: number = 1800, end: number
 
     // Create array starting at "start" and ending at "end" in values
     let allYears = []
+    const categoryDefaultColor:string = category[0].objectConfig.color
+    const categoryDefaultId:string = category[0].objectConfig.objectId
 
     for (let y = start; y <= end; y++) { 
         allYears.push(y) 
     }
 
     // Create dictionary containing years and associated data
-    let yearDataDict = category.reduce((p, n) => {
-        p[n.label] = n
-        return p
-    }, {})
+    let yearDataDict = category.reduce((dict, item) => {
+        dict[item.label] = item
+        return dict
+    }, {}) // empty dict
 
     let lastValidYear: any = {}
 
@@ -74,7 +76,7 @@ export function addEmptyYears(category: any[], start: number = 1800, end: number
             lastValidYear = currentYear
             return currentYear
         } else {
-            let emptyYear = createChartObject(year.toString(), 0, lastValidYear?.objectConfig?.objectId, lastValidYear?.objectConfig?.color)
+            let emptyYear = createChartObject(year.toString(), 0, lastValidYear?.objectConfig?.objectId || categoryDefaultId, lastValidYear?.objectConfig?.color || categoryDefaultColor)
             return emptyYear
         }
     })
