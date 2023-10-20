@@ -5,8 +5,8 @@ import {StatsFacetInterface} from "./StatsFacetInterface";
 
 const globalChartConfig: ChartConfigInterface = {
     chartDisplayConfig: {
-        constWidth: 800,
-        constHeight: 600
+        constWidth: 700,
+        constHeight: 500
     },
     tooltipText: (d)=>{
         return d.id?.join(" ");
@@ -36,7 +36,7 @@ const EXPL_METHOD: StatsFacetInterface = {
     facet: {
         name: `FACET/${RcsbSearchMetadata.Exptl.Method.path}`,
         aggregation_type: AggregationType.Terms,
-        attribute: RcsbSearchMetadata.Exptl.Method.path
+        attribute: RcsbSearchMetadata.RcsbEntryInfo.ExperimentalMethod.path
     },
     chartConfig: {
         ...globalChartConfig,
@@ -91,7 +91,8 @@ const CATH_DOMAIN: StatsFacetInterface = {
                 parameters: {
                     attribute: RcsbSearchMetadata.RcsbPolymerInstanceAnnotation.AnnotationLineage.Depth.path,
                     operator: RcsbSearchMetadata.RcsbPolymerInstanceAnnotation.AnnotationLineage.Depth.operator.Equals,
-                    value: 3
+                    // @#@#@# set to 1 to simplify dataset
+                    value: 1
                 }
             },
             facets: [{
@@ -127,7 +128,8 @@ const ADD_CATH_DOMAIN: StatsFacetInterface = {
                 parameters: {
                     attribute: RcsbSearchMetadata.RcsbPolymerInstanceAnnotation.AnnotationLineage.Depth.path,
                     operator: RcsbSearchMetadata.RcsbPolymerInstanceAnnotation.AnnotationLineage.Depth.operator.Equals,
-                    value: 3
+                    // @#@#@# set to 1 to simplify dataset
+                    value: 1
                 }
             },
             facets: [{
