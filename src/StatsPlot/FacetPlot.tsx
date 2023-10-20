@@ -39,10 +39,44 @@ import {
     transformToCumulative
 } from './facetPlotHelpers'
 import {CategoryListType} from './FacetPlotInterface'
+import Button from 'react-bootstrap/Button';
 
-const viewSettingList = ["annual", "cumulative"]
+import Icon from '../StatsApp/Components/Icons'
+
+const viewSettingList = ["Released Annually", "Cumulative"]
 // const menuStyle = {width: 200, height: '100%', outline: '1px solid red', textAlign: 'center'}
 // const headerStyle = {width:'50%'}
+
+const labelStyle = {
+    position: 'absolute',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    left: 0,
+    // border: `3px solid ${c.color}`,
+    marginLeft: `5px`,
+    // color: c.color,
+    // backgroundColor: isHidden ? 'transparent' : c.color,
+    width: `15px`,
+    height: `15px`,
+    borderRadius: `3px`,
+    display: `inline-flex`,
+    justifyContent: `center`,
+    alignItems: `center`,
+    cursor: `pointer`, 
+    verticalAlign: `middle`,
+} as React.CSSProperties
+
+const categoryContainerStyle = {
+    position: `relative`,
+    width: `calc(100% - 15px)`
+}as React.CSSProperties
+
+const categoryLineStyle = {
+    // color: c.color,  
+    textOverflow: `ellipsis`, 
+    width: `calc(100% - 15px)`,
+    paddingLeft: '30px'
+} as React.CSSProperties
 
 export function FacetPlot(props: FacetPlotInterface) {
 
@@ -85,7 +119,7 @@ export function FacetPlot(props: FacetPlotInterface) {
     ).filter(arr => arr.length !== 0)
 
     // Mutate dataToDisplay when cumulative
-    if(viewSetting === 'cumulative'){
+    if(viewSetting === 'Cumulative'){
         console.log("isCumulative")
         let [start, end]: number[] = findStartAndEndYearsForAll(dataToDisplay)
         // Add empty data points for all years between
@@ -103,103 +137,165 @@ export function FacetPlot(props: FacetPlotInterface) {
         ? new HistogramChartDataProvider()
         : new BarChartDataProvider()
 
+    const categoryStyle:any = {maxHeight:"400px", overflowY: "auto", padding: "10px 0"}
+
+    console.log("props.chartConfig", props.chartConfig)
+    const chartWidth = props?.chartConfig?.chartDisplayConfig?.constWidth || '225px'
+
     return (
-        <div className='FacetPlot Component' style={{display:'flex', flexDirection:'row', flexWrap: 'wrap', outline: '2px dotted red' }}>
-            {/* Chart */}
-            <div>
-                <ChartComponent
-                    data={dataToDisplay}
-                    chartComponentImplementation={chartType}
-                    dataProvider={chartDataProvider}
-                    chartConfig={props.chartConfig}
-                />
-                <LegendComponent data={dataToDisplay} />
-            </div>
+        <div style={{fontSize: `12px`}}>
+            <h3>Title of Chart</h3>
+            <div className='FacetPlot Component' style={{display:'flex', flexDirection:'row', flexWrap: 'nowrap'}}>
+                {/* Chart */}
+                <div>
+                    <ChartComponent
+                        data={dataToDisplay}
+                        chartComponentImplementation={chartType}
+                        dataProvider={chartDataProvider}
+                        chartConfig={props.chartConfig}
+                    />
+                    <LegendComponent data={dataToDisplay} width={chartWidth} />
+                </div>
+                <div style={{width:`50px`, height: `100%`, textAlign: `center`, margin: `10px`}}>
+                    <Icon.FullScreen onClick={() => alert("clicked")}/>
+                    <Icon.Rotate onClick={() => alert("clicked")}/>
+                    <Icon.CameraLens onClick={() => alert("clicked")}/>
+                    <Icon.LetterI onClick={() => alert("clicked")}/>
+                    <Icon.GridBox onClick={() => alert("clicked")}/>
+                    <Icon.Download onClick={() => alert("clicked")}/>
+                    <Icon.ChartDisplay onClick={() => alert("clicked")}/>
+                </div>
 
-            {/* Sidebar */}
-            <div style={{ outline: '1px solid red', textAlign: 'left'}}>
+                {/* Sidebar */}
+                <div className="p-3" style={{textAlign: 'left', width: `100%`, maxWidth: `300px`}}>
 
-                {/* Annual or Cumulative Setting */}
-                {
-                    isHistogram && 
-                    <div className="d-flex justify-content-center">
-                        <div className="btn-group">
-                            {viewSettingList.map(item => {
-                                const btnClass = item === viewSetting ? 'btn-primary' : 'btn-light'
-                                return <div className={`btn ${btnClass}`} key={item} onClick={()=>setViewSetting(item)}>{item}</div>
-                            })}
-                        </div>
-                    </div>
-                }
-
-                {/* Hide/Show All Categories */}
-                {
-                    isHistogram &&
-                    is2dData &&
-                    <div className="d-flex justify-content-center">
-                        <div className="btn-group m-1">
-                            <div className={`btn btn-success`} onClick={(e) => showAllCategories()}>
-                                Show All
-                            </div>
-                            <div className={`btn btn-warning`} onClick={(e) => hideAllCategories()}>
-                                Hide All
+                    {/* Annual or Cumulative Setting */}
+                    {/* {
+                        isHistogram && 
+                        <div className="d-flex justify-content-center">
+                            <div className="btn-group">
+                                {viewSettingList.map(item => {
+                                    const btnClass = item === viewSetting ? 'btn-primary' : 'btn-light'
+                                    return <div className={`btn ${btnClass}`} key={item} onClick={()=>setViewSetting(item)}>{item}</div>
+                                })}
                             </div>
                         </div>
-                    </div>
-                }
+                    } */}
 
-                {/* Hide/Show Categories */}
-                <div style={{height:"500px", overflowY: "auto", padding: "10px 0"}}>
-                    { categories.map(createCategoryHTML) }
+
+                    <h6 style={{fontWeight: `bold`}}>Data Options</h6>
+                    <hr className="hr hr-blurry" />
+
+                    {/* All Categories */}
+                    <div style={categoryStyle}>
+                        { categories.map(createCategoryCheckbox) }
+                    </div>
+                    {
+                        isHistogram &&
+                        is2dData &&
+                        <div className='mb-3'>
+                            <Button variant='primary' style={{fontSize: `12px`}} className='py-0 px-1 f-12' onClick={showAllCategories}>Show All</Button>
+                            <Button variant='warning' style={{fontSize: `12px`}} className='py-0 px-1 mx-1 f-12' onClick={hideAllCategories}>Hide All</Button>
+                        </div>
+                        // [
+                        //     createRadioButton('Show All', false, showAllCategories),
+                        //     createRadioButton('Hide All', false, hideAllCategories)
+                        // ]
+                    }
+                    <hr className="hr hr-blurry" />
+
+                    
+                    <p style={{fontWeight: `bold`}}>Data Set</p>
+                    <div>
+                        {/* Annual, Cumulative buttons */}
+                        {
+                            isHistogram &&
+                            viewSettingList.map(s => 
+                                createRadioButton(s, viewSetting === s, () => {setViewSetting(s)})
+                            )
+                        }
+                    </div>
+                    <hr className="hr hr-blurry" />
+                    <p style={{fontWeight: `bold`}}>Filter Data</p>
+                    <select onSelect={(e)=>{console.log("selecting", e.target)}} >
+                        <option selected disabled value={0}>Source Organism</option>
+                        <option value={1}>Homo Sapiens</option>
+                        <option value={2}>Homo Erectus</option>
+                        <option value={3}>Homo Habilis</option>
+                    </select>
+
+
                 </div>
             </div>
         </div>
     );
 
     // Helper function ///////////////////////////////////////////////////////////////////////////////////////////
-    function createCategoryHTML(c:CategoryListType, index:number){
+    function createCategoryCheckbox(c:CategoryListType, index:number){
         let isHidden:boolean = categoriesToHide.includes(c.name)
-        const checkboxStyle = {
-            display: 'none'                             
-        }
-        const labelStyle = {
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            border: `3px solid ${c.color}`,
-            marginLeft: `5px`,
-            color: c.color,
+ 
+        let labelStyleCopy = {
+            ...labelStyle, 
             backgroundColor: isHidden ? 'transparent' : c.color,
-            width: `15px`,
-            height: `15px`,
-            borderRadius: `50%`,
-            display: `inline-block`,
-            cursor: `pointer`, 
-            verticalAlign: `middle`,
-        } as React.CSSProperties
-
-        const categoryContainerStyle = {
-            position: `relative`,
-            width: `calc(100% - 15px)`
-        }as React.CSSProperties
-
-        const categoryStyle = {
-            color: c.color,  
-            textOverflow: `ellipsis`, 
-            width: `calc(100% - 15px)`
-        } as React.CSSProperties
+            border: `3px solid ${c.color}`,
+            color: c.color
+        }
     
         return (
             <div className='categories.map' style={categoryContainerStyle} key={index}>
-                <div style={categoryStyle} onClick={()=>toggleCategory(c.name)} >
+                <div style={categoryLineStyle} onClick={()=>toggleCategory(c.name)} >
+                    {/* This is the checkbox */}
+                    <label style={labelStyleCopy}>
+                        {/* This is the checkmark */}
+                        <span style={{color:"white"}}>{!isHidden && '✓'}</span>
+                    </label>
+                    {/* Text */}
                     {c.name} 
-                    <label style={labelStyle}> </label>
                 </div>
-                <input name={`${index}`} style={checkboxStyle} type='checkbox' checked={!isHidden} onChange={()=>toggleCategory(c.name)} />
             </div>
         )
     }
+    // function createCheckbox(text:string, isChecked:boolean = false, onClickFn: React.MouseEventHandler<HTMLElement> = ()=>{}){
+    //     let labelStyleCopy = {
+    //         ...labelStyle, 
+    //         backgroundColor: isChecked ? `blue` : `transparent`,
+    //         border: `3px solid blue`,
+    //         color: `blue`
+    //     }
+    //     return (
+    //         <div className='categories.map' style={categoryContainerStyle}>
+    //             <div style={categoryLineStyle} onClick={onClickFn} >
+    //                 {/* This is the checkbox */}
+    //                 <label style={labelStyleCopy}>
+    //                     {/* This is the checkmark */}
+    //                     <span style={{color:"white"}}>{isChecked && `✓`}</span>
+    //                 </label>
+    //                 {/* Text */}
+    //                 {text} 
+    //             </div>
+    //         </div>
+    //     )
+    // }
 
+    function createRadioButton(text:string, isChecked:boolean = false, onClickFn: React.MouseEventHandler<HTMLElement> = ()=>{}){
+        let labelStyleCopy = {
+            ...labelStyle, 
+            backgroundColor: isChecked ? `blue` : `transparent`,
+            border: `3px solid blue`,
+            color: `blue`,
+            borderRadius: `50%`
+        }
+        return (
+            <div className='categories.map' style={categoryContainerStyle}>
+                <div style={categoryLineStyle} onClick={onClickFn} >
+                    {/* This is the radio button */}
+                    <label style={labelStyleCopy}></label>
+                    {/* Text */}
+                    {text} 
+                </div>
+            </div>
+        )
+    }
 }
 
 
@@ -330,21 +426,22 @@ function getFacetName(facet: AttributeFacetType | FilterFacetType): string {
 // @#@#@# Should probably move to it's own file 
 function LegendComponent(props:any){
     const data:any = props.data
-    const DEFAULT_ITEM_LIMIT = 20
+    const width:string = `${props.width}px`
+    const DEFAULT_ITEM_LIMIT = 10
     const DEFAULT_COLOR = "#999999"
-    console.log("LegendComponent", DEFAULT_ITEM_LIMIT, DEFAULT_COLOR)
-    console.log("dataToDisplay", data)
+    // console.log("LegendComponent", DEFAULT_ITEM_LIMIT, DEFAULT_COLOR)
+    // console.log("dataToDisplay", data)
     const [itemLimit, setItemLimit] = useState(DEFAULT_ITEM_LIMIT);
     // const labelSet = labels.slice(0,itemLimit)
     const legendItemHTML = data.slice(0,itemLimit).map((item:any, index: number) => legendItem(item[0], index))
     // const style = {display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap'}
     // const itemStyle = {}
 
-    return (<div style={{display:'flex', justifyContent: 'center', alignItems:'center', flexWrap: 'wrap'}}>
+    return (<div style={{display:'flex', justifyContent: 'center', alignItems:'center', flexWrap: 'wrap', width: width, marginLeft: 'auto'}}>
         {legendItemHTML}
         <br/>
-        {itemLimit < data.length && <div className="btn btn-success" onClick={increaseItemLimit}>See More</div>}
-        {data.length > DEFAULT_ITEM_LIMIT && data.length !== 0 && <div className="btn btn-warning" onClick={resetItemLimit}>Hide</div>}
+        {itemLimit < data.length && <div className="btn btn-success" onClick={increaseItemLimit}>See More ({itemLimit} of {data.length})</div>}
+        {data?.length > DEFAULT_ITEM_LIMIT && <div className="btn btn-warning" onClick={resetItemLimit}>Hide</div>}
     </div>)
 
     function legendItem(item:any, index: number) {
