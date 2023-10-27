@@ -1,5 +1,5 @@
 import * as React from "react";
-import {useEffect, useState} from "react";
+import {useEffect, useState, useRef} from "react";
 
 import {ChartFacetPlotInterface, FacetPlotInterface} from "./FacetPlotInterface";
 import {SearchQueryType, SearchRequestType} from "@rcsb/rcsb-search-tools/lib/SearchQueryTools/SearchQueryInterfaces";
@@ -44,8 +44,11 @@ import Button from 'react-bootstrap/Button';
 import Icon from '../StatsApp/Components/Icons'
 
 import csvHelper from '../utils/csvHelper.js'
+import saveTargetAsImage from '../utils/saveChart.js'
 
-const viewSettingList = ["Released Annually", "Cumulative"]
+
+const CHART_FILE_NAME: string = 'RCSB Statistics Chart'
+const viewSettingList: string[] = ["Released Annually", "Cumulative"]
 // const menuStyle = {width: 200, height: '100%', outline: '1px solid red', textAlign: 'center'}
 // const headerStyle = {width:'50%'}
 
@@ -86,6 +89,8 @@ export function FacetPlot(props: FacetPlotInterface) {
     const [viewSetting, setViewSetting] = useState<string>(viewSettingList[0]);
     const [categoriesToHide, setCategoriesToHide] = useState<string[]>([])
     const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
+
+    const chartRef = useRef(null)
 
     const isHistogram:boolean = (props.chartType == ChartType.histogram)
     const is2dData:boolean = props.secondDim ? true : false
@@ -151,7 +156,7 @@ export function FacetPlot(props: FacetPlotInterface) {
     if(isFullScreen) {containerStyle = {...containerStyle, ...fullScreenStyle}}
 
     return (
-        <div style={containerStyle}>
+        <div style={containerStyle} ref={chartRef}> 
             <h3>Title of Chart</h3>
             <div className='FacetPlot Component' style={{display:'flex', flexDirection:'row', flexWrap: 'nowrap'}}>
                 {/* Chart */}
@@ -167,11 +172,11 @@ export function FacetPlot(props: FacetPlotInterface) {
                 <div style={{width:`50px`, height: `100%`, textAlign: `center`, margin: `10px`}}>
                     <div className='mb-1'><Icon.FullScreen onClick={() => setIsFullScreen(!isFullScreen)}/></div>
                     <div className='mb-1'><Icon.Rotate onClick={() => alert("clicked")}/></div>
-                    <div className='mb-1'><Icon.CameraLens onClick={() => alert("clicked")}/></div>
+                    <div className='mb-1'><Icon.CameraLens onClick={() => saveTargetAsImage(chartRef.current, CHART_FILE_NAME)}/></div>
                     <div className='mb-1'><Icon.LetterI onClick={() => alert("clicked")}/></div>
                     <div className='mb-1'><Icon.GridBox onClick={() => alert("clicked")}/></div>
                     <a href={csvHelper.getCSV()} target="_blank" className='mb-1'><Icon.Download/></a>
-                    <div className='mb-1'><Icon.ChartDisplay onClick={() => alert("clicked")}/></div>
+                    <div className='mb-1'><Icon.ChartDisplay onClick={() => alert("Toggle Linear / Log Scale")}/></div>
                 </div>
                 <a href="http://sstatic.net/stackexchange/img/logos/so/so-logo.png" download="logo.png"></a>
 
