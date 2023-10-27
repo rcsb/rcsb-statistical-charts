@@ -43,6 +43,8 @@ import Button from 'react-bootstrap/Button';
 
 import Icon from '../StatsApp/Components/Icons'
 
+import csvHelper from '../utils/csvHelper.js'
+
 const viewSettingList = ["Released Annually", "Cumulative"]
 // const menuStyle = {width: 200, height: '100%', outline: '1px solid red', textAlign: 'center'}
 // const headerStyle = {width:'50%'}
@@ -83,6 +85,7 @@ export function FacetPlot(props: FacetPlotInterface) {
     const [data, setData] = useState<ChartObjectInterface[][]>([]);
     const [viewSetting, setViewSetting] = useState<string>(viewSettingList[0]);
     const [categoriesToHide, setCategoriesToHide] = useState<string[]>([])
+    const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
 
     const isHistogram:boolean = (props.chartType == ChartType.histogram)
     const is2dData:boolean = props.secondDim ? true : false
@@ -137,13 +140,18 @@ export function FacetPlot(props: FacetPlotInterface) {
         ? new HistogramChartDataProvider()
         : new BarChartDataProvider()
 
-    const categoryStyle:any = {maxHeight:"400px", overflowY: "auto", padding: "10px 0"}
+    const fadeHeight = '40px';
+    const categoryStyle:any = {maxHeight:'300px', overflowY: 'auto', padding: '10px 0', position: 'relative', paddingBottom: fadeHeight}
+    const whiteFade:any = {float: 'left', position: 'relative', bottom: fadeHeight, left: 0, height: fadeHeight, width: 'calc(100% - 10px)', background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)', zIndex: 100}
 
-    console.log("props.chartConfig", props.chartConfig)
+    console.log('props.chartConfig', props.chartConfig)
     const chartWidth = props?.chartConfig?.chartDisplayConfig?.constWidth || '225px'
+    const fullScreenStyle = {position: 'fixed', height: '100vh', width: '100vw', top: 0, left: 0, backgroundColor: 'white', zIndex: '1000', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}
+    let containerStyle = {fontSize: `12px`}
+    if(isFullScreen) {containerStyle = {...containerStyle, ...fullScreenStyle}}
 
     return (
-        <div style={{fontSize: `12px`}}>
+        <div style={containerStyle}>
             <h3>Title of Chart</h3>
             <div className='FacetPlot Component' style={{display:'flex', flexDirection:'row', flexWrap: 'nowrap'}}>
                 {/* Chart */}
@@ -157,14 +165,16 @@ export function FacetPlot(props: FacetPlotInterface) {
                     <LegendComponent data={dataToDisplay} width={chartWidth} />
                 </div>
                 <div style={{width:`50px`, height: `100%`, textAlign: `center`, margin: `10px`}}>
-                    <Icon.FullScreen onClick={() => alert("clicked")}/>
-                    <Icon.Rotate onClick={() => alert("clicked")}/>
-                    <Icon.CameraLens onClick={() => alert("clicked")}/>
-                    <Icon.LetterI onClick={() => alert("clicked")}/>
-                    <Icon.GridBox onClick={() => alert("clicked")}/>
-                    <Icon.Download onClick={() => alert("clicked")}/>
-                    <Icon.ChartDisplay onClick={() => alert("clicked")}/>
+                    <div className='mb-1'><Icon.FullScreen onClick={() => setIsFullScreen(!isFullScreen)}/></div>
+                    <div className='mb-1'><Icon.Rotate onClick={() => alert("clicked")}/></div>
+                    <div className='mb-1'><Icon.CameraLens onClick={() => alert("clicked")}/></div>
+                    <div className='mb-1'><Icon.LetterI onClick={() => alert("clicked")}/></div>
+                    <div className='mb-1'><Icon.GridBox onClick={() => alert("clicked")}/></div>
+                    <a href={csvHelper.getCSV()} target="_blank" className='mb-1'><Icon.Download/></a>
+                    <div className='mb-1'><Icon.ChartDisplay onClick={() => alert("clicked")}/></div>
                 </div>
+                <a href="http://sstatic.net/stackexchange/img/logos/so/so-logo.png" download="logo.png"></a>
+
 
                 {/* Sidebar */}
                 <div className="p-3" style={{textAlign: 'left', width: `100%`, maxWidth: `300px`}}>
@@ -187,22 +197,25 @@ export function FacetPlot(props: FacetPlotInterface) {
                     <hr className="hr hr-blurry" />
 
                     {/* All Categories */}
-                    <div style={categoryStyle}>
-                        { categories.map(createCategoryCheckbox) }
+                    <div style={{position: 'relative'}}>
+                        <div style={categoryStyle}>
+                            { categories.map(createCategoryCheckbox) }
+                        </div>
+                        <div style={whiteFade}></div>
                     </div>
                     {
                         isHistogram &&
                         is2dData &&
-                        <div className='mb-3'>
-                            <Button variant='primary' style={{fontSize: `12px`}} className='py-0 px-1 f-12' onClick={showAllCategories}>Show All</Button>
-                            <Button variant='warning' style={{fontSize: `12px`}} className='py-0 px-1 mx-1 f-12' onClick={hideAllCategories}>Hide All</Button>
+                        <div>
+                            <Button variant='primary' style={{fontSize: `12px`}} className='py-0 px-1' onClick={showAllCategories}>Show All</Button>
+                            <Button variant='warning' style={{fontSize: `12px`}} className='py-0 px-1 mx-1' onClick={hideAllCategories}>Hide All</Button>
                         </div>
                         // [
                         //     createRadioButton('Show All', false, showAllCategories),
                         //     createRadioButton('Hide All', false, hideAllCategories)
                         // ]
                     }
-                    <hr className="hr hr-blurry" />
+                    <hr className="hr hr-blurry w-100" />
 
                     
                     <p style={{fontWeight: `bold`}}>Data Set</p>
@@ -215,7 +228,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                             )
                         }
                     </div>
-                    <hr className="hr hr-blurry" />
+                    <hr className="hr hr-blurry w-100" />
                     <p style={{fontWeight: `bold`}}>Filter Data</p>
                     <select onSelect={(e)=>{console.log("selecting", e.target)}} >
                         <option selected disabled value={0}>Source Organism</option>
@@ -224,6 +237,9 @@ export function FacetPlot(props: FacetPlotInterface) {
                         <option value={3}>Homo Habilis</option>
                     </select>
 
+                    <div style={{display:'flex', flexWrap: 'wrap'}}>
+                        {COLORS.map(c => <div style={{height: '25px', width: '50px', backgroundColor: c, color: 'black', textShadow: '1px 1px 0 white'}}>{c}</div>)}
+                    </div>
 
                 </div>
             </div>
@@ -463,7 +479,8 @@ function LegendComponent(props:any){
 
 
 // Array argument is for brightness across colors
-let COLORS:string[] = getPalettes([7,5,3])
+let COLORS:string[] = getPalettes('IBM_COLORS', [7,5,3])
+console.log("COLORS", COLORS)
 // const COLORS: string[] = [
 //     '#F05039',
 //     '#A8B6CC',

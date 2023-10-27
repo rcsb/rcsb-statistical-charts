@@ -1,7 +1,26 @@
 // https://www.ibm.com/design/language/color/
 // These colors are chosen from the above article. Not all IBM colors are being used (no gray, cool gray, warm gray). 
 
-let IBM_COLORS = {
+const HTML_COLORS = {
+    aqua: ['aqua'], 
+    black: ['black'], 
+    blue: ['blue'], 
+    fuchsia: ['fuchsia'], 
+    // gray: ['gray'], 
+    green: ['green'], 
+    lime: ['lime'], 
+    maroon: ['maroon'], 
+    navy: ['navy'], 
+    olive: ['olive'], 
+    purple: ['purple'], 
+    red: ['red'], 
+    silver: ['silver'], 
+    teal: ['teal'], 
+    white: ['white'], 
+    yellow: ['yellow'],
+}
+
+const IBM_COLORS = {
     red: [
         '#2d0709',
         '#520408',
@@ -14,18 +33,18 @@ let IBM_COLORS = {
         '#ffd7d9',
         '#fff1f1',
     ],
-    magenta: [
-        '#2a0a18',
-        '#510224',
-        '#740937',
-        '#9f1853',
-        '#d02670',
-        '#ee5396',
-        '#ff7eb6',
-        '#ffafd2',
-        '#ffd6e8',
-        '#fff0f7',
-    ],
+    // magenta: [
+    //     '#2a0a18',
+    //     '#510224',
+    //     '#740937',
+    //     '#9f1853',
+    //     '#d02670',
+    //     '#ee5396',
+    //     '#ff7eb6',
+    //     '#ffafd2',
+    //     '#ffd6e8',
+    //     '#fff0f7',
+    // ],
     purple: [
         '#1c0f30',
         '#31135e',
@@ -62,18 +81,18 @@ let IBM_COLORS = {
         '#bae6ff',
         '#e5f6ff',
     ],
-    teal: [
-        '#081a1c',
-        '#022b30',
-        '#004144',
-        '#005d5d',
-        '#007d79',
-        '#009d9a',
-        '#08bdba',
-        '#3ddbd9',
-        '#9ef0f0',
-        '#d9fbfb',
-    ],
+    // teal: [
+    //     '#081a1c',
+    //     '#022b30',
+    //     '#004144',
+    //     '#005d5d',
+    //     '#007d79',
+    //     '#009d9a',
+    //     '#08bdba',
+    //     '#3ddbd9',
+    //     '#9ef0f0',
+    //     '#d9fbfb',
+    // ],
     green: [
         '#071908',
         '#022d0d',
@@ -88,17 +107,27 @@ let IBM_COLORS = {
     ],
 }
 
-function getPalette(brightness=0){
-    return Object.values(IBM_COLORS).map(item => item[brightness])
+const ALL_COLORS = {
+    HTML_COLORS, 
+    IBM_COLORS
 }
 
-function getPalettes(brightnesses=[0,1,2,3,4,5,6,7,8,9]){
+function getPalette(paletteName, brightness=0){
+    if(!ALL_COLORS[paletteName]) throw new Error("Palette Name does not match existing palettes")
+    return Object.values(ALL_COLORS[paletteName]).map(item => item[brightness])
+}
+
+function getPalettes(paletteName, brightnesses=[0,1,2,3,4,5,6,7,8,9]){
+    let palette = brightnesses.map(b => getPalette(paletteName, b)).flat()
+    console.log("palette", palette)
     let result = []
-    for (let brightness of brightnesses) {
-        for (let color in IBM_COLORS) {
-            result.push(IBM_COLORS[color]?.[brightness])
+    // for (let brightness of brightnesses) {
+        for (let color of palette) {
+            console.log("color", color)
+            result.push(color || null)
         }
-    }
+    // }
+    return result.filter(item => item !== null)
     return shuffle(result)
 }
 
