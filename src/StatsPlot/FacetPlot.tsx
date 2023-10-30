@@ -187,10 +187,10 @@ export function FacetPlot(props: FacetPlotInterface) {
                         <div className='mb-1'><Icon.Rotate onClick={() => resetOptions()}/></div>
                     }
                     <div className='mb-1'><Icon.CameraLens onClick={() => saveTargetAsImage(chartRef.current, CHART_FILE_NAME)}/></div>
-                    <div className='mb-1'><Icon.LetterI onClick={() => alert("clicked")}/></div>
-                    <div className='mb-1'><Icon.GridBox onClick={() => alert("clicked")}/></div>
+                    <div className='mb-1'><Icon.LetterI onClick={() => alert("Information About Data (WIP)")}/></div>
+                    <div className='mb-1'><Icon.GridBox onClick={() => alert("Display Data Table (WIP)")}/></div>
                     <div className='mb-1'><a href={csvHelper.getSampleCSV()} target="_blank"><Icon.Download/></a></div>
-                    <div className='mb-1'><Icon.ChartDisplay onClick={() => alert("Toggle Linear / Log Scale")}/></div>
+                    <div className='mb-1'><Icon.ChartDisplay onClick={() => alert("Toggle Linear / Log Scale (WIP)")}/></div>
                 </div>
                 <a href="http://sstatic.net/stackexchange/img/logos/so/so-logo.png" download="logo.png"></a>
 
