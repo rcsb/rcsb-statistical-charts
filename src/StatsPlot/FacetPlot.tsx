@@ -46,6 +46,8 @@ import Icon from '../StatsApp/Components/Icons'
 import csvHelper from '../utils/csvHelper.js'
 import saveTargetAsImage from '../utils/saveChart.js'
 
+const tempFlag = false
+
 
 const CHART_FILE_NAME: string = 'RCSB Statistics Chart'
 const viewSettingList: string[] = ["Released Annually", "Cumulative"]
@@ -156,9 +158,13 @@ export function FacetPlot(props: FacetPlotInterface) {
         ? new HistogramChartDataProvider()
         : new BarChartDataProvider()
 
-    const fadeHeight = '40px';
-    const categoryStyle:any = {maxHeight:'300px', overflowY: 'auto', padding: '10px 0', position: 'relative', paddingBottom: fadeHeight}
-    const whiteFade:any = {float: 'left', position: 'relative', bottom: fadeHeight, left: 0, height: fadeHeight, width: 'calc(100% - 10px)', background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)', zIndex: 100}
+    const fadeHeight = '30px';
+    const categoryStyle:any = {height:'300px', overflowY: 'auto', padding: '20px 0', position: 'relative', paddingBottom: fadeHeight}
+    const whiteFadeBottom:any = {left: 0, position: 'absolute', bottom: 0, height: fadeHeight, width: 'calc(100% - 10px)', background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)', zIndex: 100}
+    const whiteFadeTop:any = {
+        ...whiteFadeBottom,
+        top: 0, bottom: 'unset', background: 'linear-gradient(to top, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)'
+    }
 
     console.log('props.chartConfig', props.chartConfig)
     const chartWidth = props?.chartConfig?.chartDisplayConfig?.constWidth || '225px'
@@ -217,12 +223,14 @@ export function FacetPlot(props: FacetPlotInterface) {
 
                     {/* All Categories */}
                     <div style={{position: 'relative'}}>
+                        <div style={whiteFadeTop}></div>
                         <div style={categoryStyle}>
                             { categories.map(createCategoryCheckbox) }
                         </div>
-                        <div style={whiteFade}></div>
+                        <div style={whiteFadeBottom}></div>
                     </div>
                     {
+                        tempFlag &&
                         isHistogram &&
                         is2dData &&
                         <div>
