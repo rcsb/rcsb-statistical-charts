@@ -40,66 +40,74 @@ export function StatsApp() {
     const additionalFacet = ADDITIONAL_FACET_STORE[opt2];
     const chartRef = useRef(null)
 
+    function resetOptions(){
+        setOpt1(0);
+        setOpt2(0);
+    }
+
     console.log("FACET_STORE", FACET_STORE)
 
     if (!mainFacet.facet || !mainFacet.chartType) return null;
 
     return (
-        <Container fluid="xl" ref={chartRef} className="StatsApp Component">
-            <Row>
-                {/* <div className="StatsApp Component container" ref={chartRef}> */}
-                <StatsNavBar />
-                {/* <div className="grayBox">
+        <div>
+            <Container ref={chartRef} className="StatsApp Component">
+                <Row>
+                    {/* <div className="StatsApp Component container" ref={chartRef}> */}
+                    <StatsNavBar />
+                    {/* <div className="grayBox">
 
-                </div> */}
+                    </div> */}
 
-                <FacetPlot
-                    firstDim={mainFacet.facet}
-                    secondDim={
-                        mainFacet.facetId != additionalFacet?.facetId ? additionalFacet?.facet : undefined
-                    }
-                    chartType={mainFacet.chartType}
-                    returnType={ReturnType.Entry}
-                    chartConfig={{
-                        ...mainFacet.chartConfig,
-                        histogramBinIncrement: 1,
-                    }}
-                />
-                <div style={{ margin: '100px 0 20px 0' }}>
-                    {/* Select 1st Dataset */}
-                    <Row className="row mb-1">
-                        <ButtonGroup className="btn-group" style={{ outline: '1px solid black' }}>
-                            <div className={`btn`}>1st Dimension:</div>
-                            {
-                                FACET_STORE.map((facet, index) => {
-                                    let buttonClass = index === opt1 ? 'btn-primary' : 'btn-light'
-                                    return <div className={`btn ${buttonClass}`} onClick={() => setOpt1(index)} key={index}>{facet.facetName}</div>
-                                })
-                            }
-                        </ButtonGroup>
-                    </Row>
-                    {/* Select 2nd Dataset */}
-                    <Row className="row mb-1">
-                        <ButtonGroup className="btn-group" style={{ outline: '1px solid black' }}>
-                            <div className={`btn`}>2nd Dimension:</div>
-                            {
-                                ADDITIONAL_FACET_STORE.map((facet, index) => {
-                                    let buttonClass = index === opt2 ? 'btn-primary' : 'btn-light'
-                                    return <div className={`btn ${buttonClass}`} onClick={() => setOpt2(index)} key={index}>{facet.facetName}</div>
-                                })
-                            }
-                        </ButtonGroup>
-                    </Row>
-                    <div className="d-flex justify-content-start">
-                        <div className="btn btn-success" style={{ width: '200px' }} onClick={() => { saveTargetAsImage(chartRef.current, CHART_FILE_NAME) }}>Save Chart as Image</div>
+                    <FacetPlot
+                        firstDim={mainFacet.facet}
+                        secondDim={
+                            mainFacet.facetId != additionalFacet?.facetId ? additionalFacet?.facet : undefined
+                        }
+                        chartType={mainFacet.chartType}
+                        returnType={ReturnType.Entry}
+                        chartConfig={{
+                            ...mainFacet.chartConfig,
+                            histogramBinIncrement: 1,
+                        }}
+                        resetOptions={resetOptions}
+                    />
+                    <div style={{ margin: '100px 0 20px 0' }}>
+                        {/* Select 1st Dataset */}
+                        <Row className="row mb-1">
+                            <ButtonGroup className="btn-group" style={{ outline: '1px solid black' }}>
+                                <div className={`btn`}>1st Dimension:</div>
+                                {
+                                    FACET_STORE.map((facet, index) => {
+                                        let buttonClass = index === opt1 ? 'btn-primary' : 'btn-light'
+                                        return <div className={`btn ${buttonClass}`} onClick={() => setOpt1(index)} key={index}>{facet.facetName}</div>
+                                    })
+                                }
+                            </ButtonGroup>
+                        </Row>
+                        {/* Select 2nd Dataset */}
+                        <Row className="row mb-1">
+                            <ButtonGroup className="btn-group" style={{ outline: '1px solid black' }}>
+                                <div className={`btn`}>2nd Dimension:</div>
+                                {
+                                    ADDITIONAL_FACET_STORE.map((facet, index) => {
+                                        let buttonClass = index === opt2 ? 'btn-primary' : 'btn-light'
+                                        return <div className={`btn ${buttonClass}`} onClick={() => setOpt2(index)} key={index}>{facet.facetName}</div>
+                                    })
+                                }
+                            </ButtonGroup>
+                        </Row>
+                        <div className="d-flex justify-content-start">
+                            <div className="btn btn-success" style={{ width: '200px' }} onClick={() => { saveTargetAsImage(chartRef.current, CHART_FILE_NAME) }}>Save Chart as Image</div>
+                        </div>
+
                     </div>
+                    {/* Draw the Chart */}
 
-                </div>
-                {/* Draw the Chart */}
-
-                {/* </div> */}
-            </Row>
-        </Container>
+                    {/* </div> */}
+                </Row>
+            </Container>
+        </div>
     )
 }
 
@@ -108,7 +116,6 @@ function StatsNavBar() {
 
     return <div>
         <Navbar expand="lg" className="bg-body-tertiary grayBox p-0">
-            <Container fluid>
                 <Navbar.Brand href="#home">RCSB Statistics</Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
@@ -149,7 +156,6 @@ function StatsNavBar() {
 
                     </Nav>
                 </Navbar.Collapse>
-            </Container>
 
         </Navbar>
         <Button className="btn btn-light mr-0 ml-auto my-1" style={{ maxWidth: `9rem`, width: `auto`, display: 'block', backgroundColor: '#f1f0f0', marginLeft: 'auto'}} href={DEFAULT_GQL_URL}>

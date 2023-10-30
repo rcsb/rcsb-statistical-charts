@@ -83,8 +83,19 @@ const categoryLineStyle = {
     paddingLeft: '30px'
 } as React.CSSProperties
 
-export function FacetPlot(props: FacetPlotInterface) {
+const closeFullScreenStyle = {
+    position: 'fixed', 
+    top: `20px`, 
+    left: `50vw`, 
+    transform: `translateX(-50%)`, 
+    borderRadius: '50%', 
+    boxShadow: '0 0 5px black', 
+    display: 'flex', 
+    padding: '10px'
+} as React.CSSProperties
 
+export function FacetPlot(props: FacetPlotInterface) {
+    const {resetOptions = function(){}} = props
     const [data, setData] = useState<ChartObjectInterface[][]>([]);
     const [viewSetting, setViewSetting] = useState<string>(viewSettingList[0]);
     const [categoriesToHide, setCategoriesToHide] = useState<string[]>([])
@@ -171,11 +182,14 @@ export function FacetPlot(props: FacetPlotInterface) {
                 </div>
                 <div style={{width:`50px`, height: `100%`, textAlign: `center`, margin: `10px`}}>
                     <div className='mb-1'><Icon.FullScreen onClick={() => setIsFullScreen(!isFullScreen)}/></div>
-                    <div className='mb-1'><Icon.Rotate onClick={() => alert("clicked")}/></div>
+                    {
+                        props?.resetOptions && 
+                        <div className='mb-1'><Icon.Rotate onClick={() => resetOptions()}/></div>
+                    }
                     <div className='mb-1'><Icon.CameraLens onClick={() => saveTargetAsImage(chartRef.current, CHART_FILE_NAME)}/></div>
                     <div className='mb-1'><Icon.LetterI onClick={() => alert("clicked")}/></div>
                     <div className='mb-1'><Icon.GridBox onClick={() => alert("clicked")}/></div>
-                    <a href={csvHelper.getCSV()} target="_blank" className='mb-1'><Icon.Download/></a>
+                    <div className='mb-1'><a href={csvHelper.getSampleCSV()} target="_blank"><Icon.Download/></a></div>
                     <div className='mb-1'><Icon.ChartDisplay onClick={() => alert("Toggle Linear / Log Scale")}/></div>
                 </div>
                 <a href="http://sstatic.net/stackexchange/img/logos/so/so-logo.png" download="logo.png"></a>
@@ -248,6 +262,11 @@ export function FacetPlot(props: FacetPlotInterface) {
 
                 </div>
             </div>
+            {/* Close Full Scren Mode */}
+            {
+                isFullScreen &&
+                <span style={closeFullScreenStyle} onClick={() => setIsFullScreen(false)}><Icon.CloseX /></span>
+            }
         </div>
     );
 
@@ -484,7 +503,8 @@ function LegendComponent(props:any){
 
 
 // Array argument is for brightness across colors
-let COLORS:string[] = getPalettes('IBM_COLORS', [7,5,3])
+let COLORS:string[] = getPalettes('IBM_COLORS', [8,6,4,2])
+// let COLORS:string[] = getPalettes('IBM_COLORS', [7,5,3])
 console.log("COLORS", COLORS)
 // const COLORS: string[] = [
 //     '#F05039',

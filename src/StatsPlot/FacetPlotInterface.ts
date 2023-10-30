@@ -22,6 +22,7 @@ export interface FacetPlotInterface {
     searchQuery?: SearchQueryType;
     /**Configuration for the chart*/
     chartConfig?: ChartConfigInterface;
+    resetOptions?: Function;
 }
 
 export interface ChartFacetPlotInterface {

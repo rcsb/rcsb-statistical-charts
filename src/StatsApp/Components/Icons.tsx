@@ -71,8 +71,12 @@ const Icon: any = {
         <rect x="0.915527" y="0.184082" width="26.7606" height="25.8947" fill="#EFEBEB" />
         <path d="M7.33813 6.11841V21.7632H22.8593M9.47898 20.1447C10.1926 15.4693 13.8677 6.11841 22.8593 6.11841" stroke="#716C6C" stroke-width="2" />
     </svg>
+    ),
+    CloseX: (props:any) => (<svg width="18" height="17" viewBox="0 0 18 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 2L15 15" stroke="black" stroke-width="4" stroke-linejoin="round"/>
+        <path d="M2 15L16 2" stroke="black" stroke-width="4" stroke-linejoin="round"/>
+    </svg>
     )
-
 }
 
 export default Icon;

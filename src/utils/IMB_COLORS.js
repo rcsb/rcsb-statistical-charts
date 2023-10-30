@@ -69,30 +69,30 @@ const IBM_COLORS = {
         '#d0e2ff',
         '#edf5ff',
     ],
-    cyan: [
-        '#061727',
-        '#012749',
-        '#003a6d',
-        '#00539a',
-        '#0072c3',
-        '#1192e8',
-        '#33b1ff',
-        '#82cfff',
-        '#bae6ff',
-        '#e5f6ff',
-    ],
-    // teal: [
-    //     '#081a1c',
-    //     '#022b30',
-    //     '#004144',
-    //     '#005d5d',
-    //     '#007d79',
-    //     '#009d9a',
-    //     '#08bdba',
-    //     '#3ddbd9',
-    //     '#9ef0f0',
-    //     '#d9fbfb',
+    // cyan: [
+    //     '#061727',
+    //     '#012749',
+    //     '#003a6d',
+    //     '#00539a',
+    //     '#0072c3',
+    //     '#1192e8',
+    //     '#33b1ff',
+    //     '#82cfff',
+    //     '#bae6ff',
+    //     '#e5f6ff',
     // ],
+    teal: [
+        '#081a1c',
+        '#022b30',
+        '#004144',
+        '#005d5d',
+        '#007d79',
+        '#009d9a',
+        '#08bdba',
+        '#3ddbd9',
+        '#9ef0f0',
+        '#d9fbfb',
+    ],
     green: [
         '#071908',
         '#022d0d',
@@ -127,36 +127,21 @@ function getPalettes(paletteName, brightnesses=[0,1,2,3,4,5,6,7,8,9]){
             result.push(color || null)
         }
     // }
-    return result.filter(item => item !== null)
+
+    // return result.filter(item => item !== null)
     return shuffle(result)
 }
 
-// This is a proper shuffling algo. But we don't want perfect shuffling, we want high contrast colors next to each other
-// function sampleShuffle(array) {
-//     let currentIndex = array.length, randomIndex;
-
-//     // While there remain elements to shuffle.
-//     while (currentIndex > 0) {
-
-//         // Pick a remaining element.
-//         randomIndex = Math.floor(Math.random() * currentIndex);
-//         currentIndex--;
-
-//         // And swap it with the current element.
-//         [array[currentIndex], array[randomIndex]] = [
-//             array[randomIndex], array[currentIndex]];
-//     }
-
-//     return array;
-// }
-
 // Shuffles the colors so there is higher contrast between adjacent colors in the array
+// example: input is [1,2,3,4,5] output is [1,4,2,5,3]
 function shuffle(arr){
     let result = []
-    for(let x = 0; x <= arr.length / 2; x++){
-        let item = arr[x]
-        let otherItem = arr[arr.length - x - 1]
-        result.push(item, otherItem)
+    const halfIndex = Math.ceil(arr.length / 2)
+    const arr1 = arr.slice(0,halfIndex)
+    const arr2 = arr.slice(halfIndex)
+    for(let x = 0; x < Math.max(arr1.length, arr2.length); x++){
+        if(arr1[x]) result.push(arr1[x])
+        if(arr2[x]) result.push(arr2[x])
     }
     return result
 }
