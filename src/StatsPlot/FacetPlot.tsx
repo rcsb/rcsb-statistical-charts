@@ -158,8 +158,8 @@ export function FacetPlot(props: FacetPlotInterface) {
         ? new HistogramChartDataProvider()
         : new BarChartDataProvider()
 
-    const fadeHeight = '30px';
-    const categoryStyle:any = {height:'300px', overflowY: 'auto', padding: '20px 0', position: 'relative', paddingBottom: fadeHeight}
+    const fadeHeight = '40px';
+    const categoryStyle:any = {height:'300px', overflowY: 'auto', padding: '30px 0', position: 'relative', paddingBottom: fadeHeight}
     const whiteFadeBottom:any = {left: 0, position: 'absolute', bottom: 0, height: fadeHeight, width: 'calc(100% - 10px)', background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)', zIndex: 100}
     const whiteFadeTop:any = {
         ...whiteFadeBottom,
@@ -198,11 +198,13 @@ export function FacetPlot(props: FacetPlotInterface) {
                     <div className='mb-1'><a href={csvHelper.getSampleCSV()} target="_blank"><Icon.Download/></a></div>
                     <div className='mb-1'><Icon.ChartDisplay onClick={() => alert("Toggle Linear / Log Scale (WIP)")}/></div>
                 </div>
-                <a href="http://sstatic.net/stackexchange/img/logos/so/so-logo.png" download="logo.png"></a>
+
+                {/* @#@#@# what is this? */}
+                {/* <a href="http://sstatic.net/stackexchange/img/logos/so/so-logo.png" download="logo.png"></a> */}
 
 
                 {/* Sidebar */}
-                <div className="p-3" style={{textAlign: 'left', width: `100%`, maxWidth: `300px`}}>
+                <div className="p-3" style={{textAlign: 'left', width: `100%`, maxWidth: `300px`, borderLeft: `2px solid #D1D0D0`}}>
 
                     {/* Annual or Cumulative Setting */}
                     {/* {
@@ -219,7 +221,7 @@ export function FacetPlot(props: FacetPlotInterface) {
 
 
                     <h6 style={{fontWeight: `bold`}}>Data Options</h6>
-                    <hr className="hr hr-blurry" />
+                    {/* <hr className="hr hr-blurry" /> */}
 
                     {/* All Categories */}
                     <div style={{position: 'relative'}}>
@@ -242,7 +244,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                         //     createRadioButton('Hide All', false, hideAllCategories)
                         // ]
                     }
-                    <hr className="hr hr-blurry w-100" />
+                    {/* <hr className="hr hr-blurry w-100" /> */}
 
                     
                     <p style={{fontWeight: `bold`}}>Data Set</p>
@@ -255,7 +257,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                             )
                         }
                     </div>
-                    <hr className="hr hr-blurry w-100" />
+                    {/* <hr className="hr hr-blurry w-100" /> */}
                     <p style={{fontWeight: `bold`}}>Filter Data</p>
                     <select onSelect={(e)=>{console.log("selecting", e.target)}} >
                         <option selected disabled value={0}>Source Organism</option>
@@ -264,9 +266,10 @@ export function FacetPlot(props: FacetPlotInterface) {
                         <option value={3}>Homo Habilis</option>
                     </select>
 
-                    <div style={{display:'flex', flexWrap: 'wrap'}}>
+                    {/* @#@#@# this section lets you see the color palette more clearly */}
+                    {/* <div style={{display:'flex', flexWrap: 'wrap'}}>
                         {COLORS.map(c => <div style={{height: '25px', width: '50px', backgroundColor: c, color: 'black', textShadow: '1px 1px 0 white'}}>{c}</div>)}
-                    </div>
+                    </div> */}
 
                 </div>
             </div>
@@ -474,7 +477,7 @@ function getFacetName(facet: AttributeFacetType | FilterFacetType): string {
 // @#@#@# Should probably move to it's own file 
 function LegendComponent(props:any){
     const data:any = props.data
-    const width:string = `${props.width}px`
+    // const width:string = `${props.width}px`
     const DEFAULT_ITEM_LIMIT = 10
     const DEFAULT_COLOR = "#999999"
     // console.log("LegendComponent", DEFAULT_ITEM_LIMIT, DEFAULT_COLOR)
@@ -485,11 +488,12 @@ function LegendComponent(props:any){
     // const style = {display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap'}
     // const itemStyle = {}
 
-    return (<div style={{display:'flex', justifyContent: 'center', alignItems:'center', flexWrap: 'wrap', width: width, marginLeft: 'auto'}}>
+    return (<div style={{display:'flex', justifyContent: 'flex-start', alignItems:'center', flexWrap: 'wrap', width: `calc(100% - 145px)`, marginLeft: 'auto'}}>
         {legendItemHTML}
         <br/>
-        {itemLimit < data.length && <div className="btn btn-success" onClick={increaseItemLimit}>See More ({itemLimit} of {data.length})</div>}
-        {data?.length > DEFAULT_ITEM_LIMIT && <div className="btn btn-warning" onClick={resetItemLimit}>Hide</div>}
+        {itemLimit < data.length && <a href="" onClick={increaseItemLimit}>See More</a>}&nbsp;
+        {itemLimit !== DEFAULT_ITEM_LIMIT && data?.length > DEFAULT_ITEM_LIMIT && <a href="" onClick={resetItemLimit}>See Less</a>}&nbsp;
+         ({Math.min(itemLimit, data.length)} of {data.length})
     </div>)
 
     function legendItem(item:any, index: number) {
@@ -504,8 +508,8 @@ function LegendComponent(props:any){
             {label}
         </div>
     }
-    function increaseItemLimit() { setItemLimit(itemLimit + DEFAULT_ITEM_LIMIT) }
-    function resetItemLimit() { setItemLimit(DEFAULT_ITEM_LIMIT) }
+    function increaseItemLimit(e:any) { e.preventDefault(); setItemLimit(itemLimit + DEFAULT_ITEM_LIMIT) }
+    function resetItemLimit(e:any) { e.preventDefault(); setItemLimit(DEFAULT_ITEM_LIMIT) }
 }
 
 
