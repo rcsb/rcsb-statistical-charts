@@ -115,7 +115,7 @@ function StatsNavBar() {
     const [showModal, setShowModal] = useState(false);
 
     return <div>
-        <Navbar expand="lg" className="bg-body-tertiary grayBox p-0 px-3">
+        <Navbar expand="lg" className="bg-body-tertiary grayBox p-0 px-3 mt-3 mb-2">
                 <Navbar.Brand href="#home">RCSB Statistics</Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">

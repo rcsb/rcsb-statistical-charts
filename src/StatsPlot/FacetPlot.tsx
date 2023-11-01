@@ -160,7 +160,8 @@ export function FacetPlot(props: FacetPlotInterface) {
 
     const fadeHeight = '40px';
     const categoryStyle:any = {height:'300px', overflowY: 'auto', padding: '30px 0', position: 'relative', paddingBottom: fadeHeight}
-    const whiteFadeBottom:any = {left: 0, position: 'absolute', bottom: 0, height: fadeHeight, width: 'calc(100% - 10px)', background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)', zIndex: 100}
+    const whiteFadeBottom:any = {left: 0, position: 'absolute', bottom: 0, height: fadeHeight, width: 'calc(100% - 10px)', background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)', zIndex: 100, pointerEvents: 'none'
+}
     const whiteFadeTop:any = {
         ...whiteFadeBottom,
         top: 0, bottom: 'unset', background: 'linear-gradient(to top, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)'
@@ -197,6 +198,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                     <div className='mb-1'><Icon.GridBox onClick={() => alert("Display Data Table (WIP)")}/></div>
                     <div className='mb-1'><a href={csvHelper.getSampleCSV()} target="_blank"><Icon.Download/></a></div>
                     <div className='mb-1'><Icon.ChartDisplay onClick={() => alert("Toggle Linear / Log Scale (WIP)")}/></div>
+                    <div className='mb-1'><Icon.ColorWheel onClick={() => alert("Change Color Palette (WIP)")}/></div>
                 </div>
 
                 {/* @#@#@# what is this? */}
@@ -247,7 +249,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                     {/* <hr className="hr hr-blurry w-100" /> */}
 
                     
-                    <p style={{fontWeight: `bold`}}>Data Set</p>
+                    <p className="mt-3" style={{fontWeight: `bold`}}>Data Set</p>
                     <div>
                         {/* Annual, Cumulative buttons */}
                         {
