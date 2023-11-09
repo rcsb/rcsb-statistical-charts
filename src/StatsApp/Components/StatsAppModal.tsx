@@ -14,6 +14,7 @@ function StatsAppModal(props:any) {
         </Modal.Header>
         <Modal.Body>{props.children}</Modal.Body>
         <Modal.Footer>
+          {props.footer}
           {/* <Button variant="secondary" onClick={props.handleClose}>
             Close
           </Button>

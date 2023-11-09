@@ -1,9 +1,12 @@
 import * as React from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+
 import { ADDITIONAL_FACET_STORE, FACET_STORE } from "./FacetStore";
 import { FacetPlot } from "../StatsPlot/FacetPlot";
 import StatsAppModal from "./Components/StatsAppModal";
 import { ReturnType } from "@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchEnums";
+import {StatsFacetInterface} from "./StatsFacetInterface";
+
 import Icon from './Components/Icons'
 import saveTargetAsImage from '../utils/saveChart.js'
 
@@ -17,6 +20,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Button from 'react-bootstrap/Button';
 // import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
+import { addMonitorResizeListener, removeMonitorResizeListener } from "../utils/resizeMonitor";
 
 const CHART_FILE_NAME: string = 'RCSB Statistics Chart'
 // const textAndLinks = {
@@ -29,28 +33,43 @@ const CHART_FILE_NAME: string = 'RCSB Statistics Chart'
 //     "Build a Chart": "/",
 // }
 
-const DEFAULT_GQL_URL: string = `https://data.rcsb.org/graphql/index.html`
 
 export function StatsApp() {
 
     const [opt1, setOpt1] = useState<number>(0);
     // @#@#@# default should be 0 for the real app
-    const [opt2, setOpt2] = useState<number>(1);
-    const mainFacet = FACET_STORE[opt1];
-    const additionalFacet = ADDITIONAL_FACET_STORE[opt2];
+    const [opt2, setOpt2] = useState<number>(2);
+    const mainFacet:StatsFacetInterface = FACET_STORE[opt1];
+    const additionalFacet:StatsFacetInterface = ADDITIONAL_FACET_STORE[opt2];
     const chartRef = useRef(null)
+    const [windowInnerWidth, setWindowInnerWidth] = useState(window.innerWidth)
 
     function resetOptions(){
         setOpt1(0);
         setOpt2(0);
     }
 
+    useEffect(
+        () => {
+            const listenerFunction = (w: number) => {       
+                setWindowInnerWidth(w) 
+            }
+            addMonitorResizeListener(listenerFunction)
+            return removeMonitorResizeListener(listenerFunction)
+        },
+        [windowInnerWidth]
+    )
+
     console.log("FACET_STORE", FACET_STORE)
 
     if (!mainFacet.facet || !mainFacet.chartType) return null;
 
+    //Add screen width to chartConfig object
+    // if (mainFacet?.chartConfig?.chartDisplayConfig?.constWidth) mainFacet.chartConfig.chartDisplayConfig.constWidth = determineChartWidth(windowInnerWidth)
+
     return (
         <div>
+            {/* @#@#@# can add "fluid" property to extend to edge of screen */}
             <Container ref={chartRef} className="StatsApp Component">
                 <Row>
                     {/* <div className="StatsApp Component container" ref={chartRef}> */}
@@ -158,12 +177,30 @@ function StatsNavBar() {
                 </Navbar.Collapse>
 
         </Navbar>
-        <Button className="btn btn-light mr-0 ml-auto my-1" style={{ maxWidth: `9rem`, width: `auto`, display: 'block', backgroundColor: '#f1f0f0', marginLeft: 'auto'}} href={DEFAULT_GQL_URL}>
+        <Button className="btn btn-light mr-0 ml-auto my-1" style={{ maxWidth: `9rem`, width: `auto`, display: 'block', backgroundColor: '#f1f0f0', marginLeft: 'auto'}} onClick={()=>{setShowModal(true)}}>
             <Icon.Gear /> Search API
         </Button>
-        <StatsAppModal show={showModal} handleClose={() => { setShowModal(false) }} title={`Search API`}>
+        <StatsAppModal show={showModal} handleClose={() => { setShowModal(false) }} title={`Search API`} footer={`Cheers`}>
             <h1>Zintis</h1>
             <div>{"const gphurlforLink = gqlUrl + `/index.html?query=${queryforLink}&variables=${variables}`;"}</div>
         </StatsAppModal>
     </div>
 }
+
+// /**
+//  * The rcsb-charts library is a layer between rcsb-statistical-charts and the 3rd party chart.js library. chart.js's native behavior is for the chart to fill the horizontal container. rcsb-charts requires a "constWidth" and "constHeight" setting in order to display the chart. So this function will measure the screen and kind of act as CSS to determine the width of the charting portino of the app.
+//  * @param width - the size of the screen
+//  * @returns number - the size the chart should be
+//  */
+// function determineChartWidth(width: number) {
+//     return width * .8
+//     let result
+//     if (width > 1050) { result = width - 500 }
+//     if (width > 700) { result = width - 400 }
+//     else { result = width * .9 }
+
+//     console.log(width, result)
+//     return result
+
+// }
+// // if (mainFacet?.chartConfig?.chartDisplayConfig?.constWidth) mainFacet.chartConfig.chartDisplayConfig.constWidth = determineChartWidth(windowInnerWidth)
