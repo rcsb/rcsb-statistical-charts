@@ -207,7 +207,7 @@ export function FacetPlot(props: FacetPlotInterface) {
 
     // @#@#@#
     // const chartWidth = props?.chartConfig?.chartDisplayConfig?.constWidth || '225px'
-    const chartWidth = derivedChartWidth || '225px'
+    // const chartWidth = derivedChartWidth || '225px'
     const fullScreenStyle = { position: 'fixed', height: '100vh', width: '100vw', top: 0, left: 0, backgroundColor: 'white', zIndex: '1000', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }
     let containerStyle = { fontSize: `12px` }
     if (isFullScreen) { containerStyle = { ...containerStyle, ...fullScreenStyle } }
