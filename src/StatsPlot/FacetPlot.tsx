@@ -52,9 +52,6 @@ import {
 } from '../utils/resizeMonitor.js'
 import StatsAppModal from "../StatsApp/Components/StatsAppModal";
 
-let bodyOverflow = document.body.style.overflow
-
-
 const CHART_FILE_NAME: string = 'RCSB Statistics Chart'
 const viewSettingList: string[] = ["Released Annually", "Cumulative"]
 // const menuStyle = {width: 200, height: '100%', outline: '1px solid red', textAlign: 'center'}
@@ -115,12 +112,13 @@ export function FacetPlot(props: FacetPlotInterface) {
 
     // Prevent scroll when chart is full screen
     if (isFullScreen) {
-        bodyOverflow = document.body.style.overflow
         document.body.style.overflow = 'hidden'
     }
     else {
-        document.body.style.overflow = bodyOverflow
+        document.body.style.overflow = 'auto'
     }
+
+    console.log("isFullScreen", isFullScreen, "bodyOverflow", document.body.style.overflow)
 
     const chartRef = useRef(null)
     const chartContainer: any = useRef();
@@ -189,7 +187,6 @@ export function FacetPlot(props: FacetPlotInterface) {
             dataToDisplay = dataWithEmptyYears.map(category => transformToCumulative(category))
         }
     }
-    console.log("datatodisplay", dataToDisplay)
 
     const chartType = isHistogram
         ? ChartJsHistogramComponent
@@ -208,7 +205,6 @@ export function FacetPlot(props: FacetPlotInterface) {
         top: 0, bottom: 'unset', background: 'linear-gradient(to top, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)'
     }
 
-    console.log('props.chartConfig', props.chartConfig)
     // @#@#@#
     // const chartWidth = props?.chartConfig?.chartDisplayConfig?.constWidth || '225px'
     const chartWidth = derivedChartWidth || '225px'
@@ -216,8 +212,6 @@ export function FacetPlot(props: FacetPlotInterface) {
     let containerStyle = { fontSize: `12px` }
     if (isFullScreen) { containerStyle = { ...containerStyle, ...fullScreenStyle } }
 
-    console.log("Facetplot Component", chartWidth)
-    console.log("dataToDisplay", dataToDisplay)
 
     // apply colors to dataset
     dataToDisplay = dataToDisplay.map((category, index) => {
