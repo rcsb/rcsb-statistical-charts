@@ -12,17 +12,15 @@ window.addEventListener('resize', (e) => {
     })
 })
 
-function addMonitorResizeListener(callback){
+export function addScreenResizeListener(callback){
     // window.removeEventListener("resize", CB);
     console.log("adding listener function", callback)
     if(typeof callback !== "function") throw new Error("monitorResize must take callback as argument")
     callbacks.push(callback)
 }
-function removeMonitorResizeListener(callback){
+export function removeScreenResizeListener(callback){
     console.log("removing listener function", callback)
     if(typeof callback !== "function") throw new Error("monitorResize must take callback as argument")
     let index = callbacks.indexOf(callback)
     callbacks.splice(index, 1)
 }
-
-module.exports = {addMonitorResizeListener, removeMonitorResizeListener}

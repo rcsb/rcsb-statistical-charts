@@ -31,13 +31,14 @@ import {
 import {
     ChartJsHistogramComponent
 } from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/ChatJsImplementations/ChartJsHistogramComponent";
-import { getPalette } from '../utils/colors'
+import { COLORBLIND, NON_COLORBLIND, getPalette } from '../utils/colors'
 import {
     createCategoryListFromData,
     findStartAndEndYearsForAll,
-    // findStartAndEndYears,
     addEmptyYears,
-    transformToCumulative
+    transformToCumulative,
+    loudToTitleCase,
+    determineChartWidth
 } from './facetPlotHelpers'
 import { CategoryListType } from './FacetPlotInterface'
 import Button from 'react-bootstrap/Button';
@@ -47,25 +48,20 @@ import Icon from '../StatsApp/Components/Icons'
 import csvHelper from '../utils/csvHelper.js'
 import saveTargetAsImage from '../utils/saveChart.js'
 import {
-    addMonitorResizeListener,
-    // removeMonitorResizeListener
+    addScreenResizeListener,
 } from '../utils/resizeMonitor.js'
 import StatsAppModal from "../StatsApp/Components/StatsAppModal";
 
 const CHART_FILE_NAME: string = 'RCSB Statistics Chart'
 const viewSettingList: string[] = ["Released Annually", "Cumulative"]
-// const menuStyle = {width: 200, height: '100%', outline: '1px solid red', textAlign: 'center'}
-// const headerStyle = {width:'50%'}
 
+// CSS Styles
 const labelStyle = {
     position: 'absolute',
     top: '50%',
     transform: 'translateY(-50%)',
     left: 0,
-    // border: `3px solid ${c.color}`,
     marginLeft: `5px`,
-    // color: c.color,
-    // backgroundColor: isHidden ? 'transparent' : c.color,
     width: `15px`,
     height: `15px`,
     borderRadius: `3px`,
@@ -82,7 +78,6 @@ const categoryContainerStyle = {
 } as React.CSSProperties
 
 const categoryLineStyle = {
-    // color: c.color,  
     textOverflow: `ellipsis`,
     width: `calc(100% - 15px)`,
     paddingLeft: '30px'
@@ -99,47 +94,42 @@ const closeFullScreenStyle = {
     padding: '10px'
 } as React.CSSProperties
 
+// FacetPlot Component
 export function FacetPlot(props: FacetPlotInterface) {
-    const { resetOptions = function () { } } = props
-    const [data, setData] = useState<ChartObjectInterface[][]>([]);
-    const [viewSetting, setViewSetting] = useState<string>(viewSettingList[0]);
+    const { resetOptions = function () { } } = props // clears user input
+    const [data, setData] = useState<ChartObjectInterface[][]>([]); // RCSB data
+    const [viewSetting, setViewSetting] = useState<string>(viewSettingList[0]); // annual or cumulative view
     const [categoriesToHide, setCategoriesToHide] = useState<string[]>([])
-    const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
-    const [isColorPickerOpen, setIsColorPickerOpen] = useState<boolean>(false);
-    const [chosenColorPaletteName, setChosenColorPaletteName] = useState<string>('IBM_COLORS');
-
-    const chosenPalette: string[] = ALL_COLORS[chosenColorPaletteName]
-
+    
     // Prevent scroll when chart is full screen
-    if (isFullScreen) {
-        document.body.style.overflow = 'hidden'
-    }
-    else {
-        document.body.style.overflow = 'auto'
-    }
+    const [isFullScreen, setIsFullScreen] = useState<boolean>(false);
+    document.body.style.overflow = isFullScreen ? 'hidden' : 'auto'
 
-    console.log("isFullScreen", isFullScreen, "bodyOverflow", document.body.style.overflow)
+    // Manage Color Picker Modal and selection
+    const [isColorPickerOpen, setIsColorPickerOpen] = useState<boolean>(false);
+    const [chosenColorPaletteName, setChosenColorPaletteName] = useState<string>(Object.keys(ALL_COLORS)[0]);
+    const chosenPalette: string[] = ALL_COLORS[chosenColorPaletteName] || ["#000000"]
 
+    // Element to save as image ( with function saveTargetAsImage() )
     const chartRef = useRef(null)
+
+    // Element to measure for width
     const chartContainer: any = useRef();
     const chartContainerWidth = chartContainer?.current?.offsetWidth || null
     console.log("chartContainerWidth", chartContainerWidth)
 
-    // if (mainFacet?.chartConfig?.chartDisplayConfig?.constWidth) mainFacet.chartConfig.chartDisplayConfig.constWidth = determineChartWidth(windowInnerWidth)
-
     const modifiedChartConfig = cloneDeep(props.chartConfig)
-    const derivedChartWidth = determineChartWidth(chartContainerWidth)
+    const modifiedChartWidth = determineChartWidth(chartContainerWidth)
     if (modifiedChartConfig?.chartDisplayConfig?.constWidth) {
-        modifiedChartConfig.chartDisplayConfig.constWidth = derivedChartWidth
+        modifiedChartConfig.chartDisplayConfig.constWidth = modifiedChartWidth
     }
 
+    // Check Chart type
     const isHistogram: boolean = (props.chartType == ChartType.histogram)
     const is2dData: boolean = props.secondDim ? true : false
 
 
-
-    // let categoryMap:any = {};
-    let categories: any[] = createCategoryListFromData(data)
+    const categories: any[] = createCategoryListFromData(data)
 
     // Hide all, show all, toggle specific categories in the chart
     function hideAllCategories() { setCategoriesToHide(categories.map(item => item.name)) }
@@ -152,20 +142,19 @@ export function FacetPlot(props: FacetPlotInterface) {
         }
     }
 
-    function monitorSize(w: number, h: number) { console.log(w, h) }
+    function screenSize(w: number, h: number) { console.log(w, h) }
 
     useEffect(() => {
         setData([]);
         setViewSetting(viewSettingList[0])
-        // @#@#@#
         chartFacets(props).then(data => setData(data));
-        addMonitorResizeListener(monitorSize);
+        addScreenResizeListener(screenSize);
         setCategoriesToHide([])
         setIsFullScreen(false)
         setIsColorPickerOpen(false)
     }, [props]);
 
-    let dataToDisplay = data.map(
+    let dataToDisplay:ChartObjectInterface[][] = data.map(
         dataSet => {
             return dataSet.filter(
                 dataPoint => {
@@ -177,9 +166,7 @@ export function FacetPlot(props: FacetPlotInterface) {
     ).filter(arr => arr.length !== 0)
 
     // Mutate dataToDisplay when cumulative
-    // @#@#@# refactor into a single dataToCumulative function
     if (viewSetting === 'Cumulative') {
-        console.log("isCumulative")
         let [start, end]: number[] = findStartAndEndYearsForAll(dataToDisplay)
         // Add empty data points for all years between
         if (start ?? end ?? true) {
@@ -195,8 +182,8 @@ export function FacetPlot(props: FacetPlotInterface) {
         ? new HistogramChartDataProvider()
         : new BarChartDataProvider()
 
-    const fadeHeight = '40px';
-    const categoryStyle: any = { height: '300px', overflowY: 'auto', padding: '30px 0', position: 'relative', paddingBottom: fadeHeight }
+    const fadeHeight = '30px';
+    const categoryStyle: any = { height: '300px', overflowY: 'auto', padding: '30px 0', position: 'relative', paddingBottom: fadeHeight, marginBottom: '20px' }
     const whiteFadeBottom: any = {
         left: 0, position: 'absolute', bottom: 0, height: fadeHeight, width: 'calc(100% - 10px)', background: 'linear-gradient(to bottom, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)', zIndex: 100, pointerEvents: 'none'
     }
@@ -206,8 +193,7 @@ export function FacetPlot(props: FacetPlotInterface) {
     }
 
     // @#@#@#
-    // const chartWidth = props?.chartConfig?.chartDisplayConfig?.constWidth || '225px'
-    // const chartWidth = derivedChartWidth || '225px'
+    const derivedChartWidth = props?.chartConfig?.chartDisplayConfig?.constWidth || '225px'
     const fullScreenStyle = { position: 'fixed', height: '100vh', width: '100vw', top: 0, left: 0, backgroundColor: 'white', zIndex: '1000', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }
     let containerStyle = { fontSize: `12px` }
     if (isFullScreen) { containerStyle = { ...containerStyle, ...fullScreenStyle } }
@@ -260,20 +246,6 @@ export function FacetPlot(props: FacetPlotInterface) {
                 {/* Sidebar */}
                 <div className="p-3 flex-grow-1" style={{ textAlign: 'left', width: `100%`, maxWidth: `300px`, borderLeft: `2px solid #D1D0D0` }}>
 
-                    {/* Annual or Cumulative Setting */}
-                    {/* {
-                        isHistogram && 
-                        <div className="d-flex justify-content-center">
-                            <div className="btn-group">
-                                {viewSettingList.map(item => {
-                                    const btnClass = item === viewSetting ? 'btn-primary' : 'btn-light'
-                                    return <div className={`btn ${btnClass}`} key={item} onClick={()=>setViewSetting(item)}>{item}</div>
-                                })}
-                            </div>
-                        </div>
-                    } */}
-
-
                     <h6 style={{ fontWeight: `bold` }}>Data Options</h6>
                     {/* <hr className="hr hr-blurry" /> */}
 
@@ -285,6 +257,8 @@ export function FacetPlot(props: FacetPlotInterface) {
                         </div>
                         <div style={whiteFadeBottom}></div>
                     </div>
+
+                    {/* Hide all, show all buttons */}
                     {
                         isHistogram &&
                         is2dData &&
@@ -292,17 +266,11 @@ export function FacetPlot(props: FacetPlotInterface) {
                             <Button variant='primary' style={{ fontSize: `12px` }} className='py-0 px-1' onClick={showAllCategories}>Show All</Button>
                             <Button variant='warning' style={{ fontSize: `12px` }} className='py-0 px-1 mx-1' onClick={hideAllCategories}>Hide All</Button>
                         </div>
-                        // [
-                        //     createRadioButton('Show All', false, showAllCategories),
-                        //     createRadioButton('Hide All', false, hideAllCategories)
-                        // ]
                     }
-                    {/* <hr className="hr hr-blurry w-100" /> */}
 
-
+                    {/* Annual, Cumulative buttons */}
                     <p className="mt-3" style={{ fontWeight: `bold` }}>Data Set</p>
                     <div>
-                        {/* Annual, Cumulative buttons */}
                         {
                             isHistogram &&
                             viewSettingList.map(s =>
@@ -310,7 +278,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                             )
                         }
                     </div>
-                    {/* <hr className="hr hr-blurry w-100" /> */}
+
                     <p style={{ fontWeight: `bold` }}>Filter Data</p>
                     <select onSelect={(e) => { console.log("selecting", e.target) }} >
                         <option selected disabled value={0}>Source Organism</option>
@@ -319,24 +287,30 @@ export function FacetPlot(props: FacetPlotInterface) {
                         <option value={3}>Homo Habilis</option>
                     </select>
 
-                    {/* @#@#@# this section lets you see the color palette more clearly */}
-                    {/* <div style={{display:'flex', flexWrap: 'wrap'}}>
-                        {COLORS.map(c => <div style={{height: '25px', width: '50px', backgroundColor: c, color: 'black', textShadow: '1px 1px 0 white'}}>{c}</div>)}
-                    </div> */}
-
                 </div>
             </div>
-            {/* Close Full Scren Mode */}
+
+            {/* Close Full Screen Mode */}
             {
                 isFullScreen &&
                 <span style={closeFullScreenStyle} onClick={() => setIsFullScreen(false)}><Icon.CloseX /></span>
             }
+
             {/* <StatsAppModal showModal={true}>COLOR PICKER</StatsAppModal> */}
             {
                 isColorPickerOpen &&
                 <StatsAppModal show={isColorPickerOpen} handleClose={() => { setIsColorPickerOpen(false) }} title={`Color Picker`} >
                     Choose a palette: ({loudToTitleCase(chosenColorPaletteName)})
-                    {Object.entries(ALL_COLORS).map((entry: any) => {
+                    {/* Normal Color Entries */}
+                    {Object.entries(NON_COLORBLIND).map((entry: any) => {
+                        const [paletteName, colors] = entry;
+                        return <div style={{display:'flex', alignItems: 'center', flexWrap: 'wrap'}} onClick={() => {
+                            setChosenColorPaletteName(paletteName)
+                        }}><input style={{margin: '5px'}} type='checkbox' checked={chosenColorPaletteName === paletteName} /> {colors.map((c: string) => createColorSpan(c))}</div>
+                    })}
+                    {/* Colorblind Entries */}
+                    {Object.keys(COLORBLIND).length && "Colorblind:"}
+                    {Object.entries(COLORBLIND).map((entry: any) => {
                         const [paletteName, colors] = entry;
                         return <div style={{display:'flex', alignItems: 'center', flexWrap: 'wrap'}} onClick={() => {
                             setChosenColorPaletteName(paletteName)
@@ -347,7 +321,7 @@ export function FacetPlot(props: FacetPlotInterface) {
         </div>
     );
 
-    // Helper function ///////////////////////////////////////////////////////////////////////////////////////////
+    // Helper functions ///////////////////////////////////////////////////////////////////////////////////////////
     function createColorSpan(color: string) {
         return <div style={{ display: 'inline-block', minHeight: '15px', minWidth: '15px', backgroundColor: color }}></div>
     }
@@ -376,27 +350,6 @@ export function FacetPlot(props: FacetPlotInterface) {
             </div>
         )
     }
-    // function createCheckbox(text:string, isChecked:boolean = false, onClickFn: React.MouseEventHandler<HTMLElement> = ()=>{}){
-    //     let labelStyleCopy = {
-    //         ...labelStyle, 
-    //         backgroundColor: isChecked ? `blue` : `transparent`,
-    //         border: `3px solid blue`,
-    //         color: `blue`
-    //     }
-    //     return (
-    //         <div className='categories.map' style={categoryContainerStyle}>
-    //             <div style={categoryLineStyle} onClick={onClickFn} >
-    //                 {/* This is the checkbox */}
-    //                 <label style={labelStyleCopy}>
-    //                     {/* This is the checkmark */}
-    //                     <span style={{color:"white"}}>{isChecked && `✓`}</span>
-    //                 </label>
-    //                 {/* Text */}
-    //                 {text} 
-    //             </div>
-    //         </div>
-    //     )
-    // }
 
     function createRadioButton(text: string, isChecked: boolean = false, onClickFn: React.MouseEventHandler<HTMLElement> = () => { }) {
         let labelStyleCopy = {
@@ -469,11 +422,8 @@ export function FacetPlot(props: FacetPlotInterface) {
                 ...d,
                 objectConfig: {
                     objectId: [d.label, d.population],
-                    // @#@#@# color for single dimension
-                    // color: chosenPalette[index % chosenPalette.length]
                 }
             }))];
-        console.log("chartFacets() result", result)
         return result
     }
 
@@ -527,19 +477,13 @@ export function FacetPlot(props: FacetPlotInterface) {
         return getFacetName(facet.facets[0]);
     }
 
-    // @#@#@# Should probably move to it's own file 
     function LegendComponent(props: any) {
         const data: any = props.data
         // const width:string = `${props.width}px`
         const DEFAULT_ITEM_LIMIT = 10
         const DEFAULT_COLOR = "#999999"
-        // console.log("LegendComponent", DEFAULT_ITEM_LIMIT, DEFAULT_COLOR)
-        // console.log("dataToDisplay", data)
         const [itemLimit, setItemLimit] = useState(DEFAULT_ITEM_LIMIT);
-        // const labelSet = labels.slice(0,itemLimit)
         const legendItemHTML = data.slice(0, itemLimit).map((item: any, index: number) => legendItem(item[0], index))
-        // const style = {display: 'flex', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap'}
-        // const itemStyle = {}
 
         return (
             <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexWrap: 'wrap', width: props.width, marginLeft: 'auto' }}>
@@ -568,14 +512,9 @@ export function FacetPlot(props: FacetPlotInterface) {
     }
 }
 
+// Constants
 
-
-
-
-
-
-// Array argument is for brightness across colors
-const ALL_COLORS: any = {
+const ALL_COLORS: ColorPallettes = {
     IBM_COLORS: getPalette('IBM_COLORS'),
     HTML_COLORS: getPalette('HTML_COLORS'),
     BLUE_TO_RED: getPalette('BLUE_TO_RED'),
@@ -585,39 +524,10 @@ const ALL_COLORS: any = {
     RIVER_NIGHTS: getPalette('RIVER_NIGHTS'),
     SALMON_TO_AQUA: getPalette('SALMON_TO_AQUA'),
     SPRING_PASTELS: getPalette('SPRING_PASTELS'),
-}
-// let COLORS:string[] = getPalette('HTML_COLORS')
-// let COLORS:string[] = getPalette('BLUE_TO_RED')
-// let COLORS:string[] = getPalette('DUTCH_FIELD')
-// let COLORS:string[] = getPalette('ORANGE_TO_PURPLE')
-// let COLORS:string[] = getPalette('RETRO_METRO')
-// let COLORS:string[] = getPalette('RIVER_NIGHTS')
-// let COLORS:string[] = getPalette('SALMON_TO_AQUA')
-// let COLORS:string[] = getPalette('SPRING_PASTELS')
-
-
-/**
- * The rcsb-charts library is a layer between rcsb-statistical-charts and the 3rd party chart.js library. chart.js's native behavior is for the chart to fill the horizontal container. rcsb-charts requires a "constWidth" and "constHeight" setting in order to display the chart. So this function will measure the screen and kind of act as CSS to determine the width of the charting portino of the app.
- * @param width - the size of the screen
- * @returns number - the size the chart should be
- */
-function determineChartWidth(width: number) {
-    let result
-    if (width > 1000) { result = width - 200 }
-    else { result = width }
-
-    console.log(width, result)
-    // @#@#@# this is a hardcoded value until I figure out the right combination of flex:wrap and sizes
-    return 700
-}
-// if (mainFacet?.chartConfig?.chartDisplayConfig?.constWidth) mainFacet.chartConfig.chartDisplayConfig.constWidth = determineChartWidth(windowInnerWidth)
-
-function loudToTitleCase(s: String) {
-    return s.replace(/_/g, " ").toLowerCase().replace(
-        /\w\S*/g,
-        function (txt: string) {
-            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-        }
-    )
+    BANG_WONG: getPalette('BANG_WONG'),
+    PAUL_TOL: getPalette('PAUL_TOL'),
 }
 
+interface ColorPallettes{
+    [propName: string]: string[];
+}

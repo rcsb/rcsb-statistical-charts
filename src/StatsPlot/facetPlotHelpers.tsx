@@ -1,7 +1,11 @@
 import {ChartObjectInterface} from "@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartConfigInterface";
 import {CategoryListType, CategoryDictType} from "./FacetPlotInterface"
 
-
+/**
+ * Transforms RCSB data into a list of categories
+ * @param data 
+ * @returns array of CategoryListType (i.e. [ {name: string, count: number, color: string} ] )
+ */
 export function createCategoryListFromData(data:ChartObjectInterface[][]):CategoryListType[]{
     let categoryDict: CategoryDictType = {};
     let categories: CategoryListType[] = []
@@ -30,8 +34,21 @@ export function createCategoryListFromData(data:ChartObjectInterface[][]):Catego
     return categories
 }
 
-// Helper functions for cumulative view ////////////////////////////////////////////////////////////
-export function findStartAndEndYearsForAll(categories: any[]): number[] {
+/**
+ * Takes an array of categories, which are arrays of categoriObjectInterfaces (see below)
+ * @param categories [ [         
+ *      {
+ *          label,
+            population,
+            objectConfig: {
+                objectId,
+                color
+            }
+        }
+    ] ]
+ * @returns number[] an array with the lowest and highest numbers found (for category years) (i.e. [1984, 2023])
+ */
+export function findStartAndEndYearsForAll(categories: ChartObjectInterface[][]): number[] {
     
     let allYears: number[] = categories.map(category => findStartAndEndYears(category)).flat()
     if (allYears.length === 0) return []
@@ -50,6 +67,13 @@ export function findStartAndEndYearsForAll(categories: any[]): number[] {
     }
 }
 
+/**
+ * 
+ * @param category an array of chartObjectInterfaces
+ * @param start number (low)
+ * @param end number (high)
+ * @returns additional entries in the category, beginning with the low number's year, and ending with the high. Existing entries are preserved
+ */
 export function addEmptyYears(category: any[], start: number = 1800, end: number = new Date().getFullYear()
 ): any[] {
 
@@ -84,6 +108,11 @@ export function addEmptyYears(category: any[], start: number = 1800, end: number
     return result
 }
 
+/**
+ * This function updates the population of each entry to match the cumulative total up until that point
+ * @param category 
+ * @returns 
+ */
 export function transformToCumulative(category: any[]): any[] {
 
     let totalPopulation = 0
@@ -98,10 +127,18 @@ export function transformToCumulative(category: any[]): any[] {
     return result
 }
 
+/**
+ * Casting some data points into a Chart Object
+ * @param label label for display
+ * @param population number count of item
+ * @param objectId array of strings/numbers i.e. ['1987', 'Saccharomyces cerevisiae', 4]
+ * @param color color for display
+ * @returns an object in the correct format for the chart
+ */
 export function createChartObject<ChartObjectInterface>(
     label: string | number = '', 
     population: number = 0, 
-    objectId: any = [], 
+    objectId: string | number [], 
     color: string
 ) {
     return {
@@ -112,4 +149,31 @@ export function createChartObject<ChartObjectInterface>(
             color
         }
     }
+}
+
+/**
+ * Convert LOUD_CASE string to Proper Case
+ * @param s Is a "LOUD_CASE" string
+ * @returns a proper case string i.e. "Loud Case"
+ */
+export function loudToTitleCase(s: String) {
+    return s.replace(/_/g, " ").toLowerCase().replace(
+        /\w\S*/g,
+        function (txt: string) {
+            return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+        }
+    )
+}
+
+/**
+ * The rcsb-charts library is a layer between rcsb-statistical-charts and the 3rd party chart.js library. chart.js's native behavior is for the chart to fill the horizontal container. rcsb-charts requires a "constWidth" and "constHeight" setting in order to display the chart. So this function will measure the screen and kind of act as CSS to determine the width of the charting portino of the app.
+ * @param width - the size of the screen
+ * @returns number - the size the chart should be
+ */
+export function determineChartWidth(width: number) {
+    let result
+    if (width > 1000) { result = width - 200 }
+    else { result = width }
+    // console.log(width, result)
+    return 700 || result
 }
