@@ -171,9 +171,10 @@ export function loudToTitleCase(s: String) {
  * @returns number - the size the chart should be
  */
 export function determineChartWidth(width: number) {
-    let result
+    let result = width - 200
     if (width > 1000) { result = width - 200 }
     else { result = width }
     // console.log(width, result)
+    console.log("determineChartWidth", width, result)
     return 700 || result
 }

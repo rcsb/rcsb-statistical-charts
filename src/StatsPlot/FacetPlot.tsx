@@ -38,7 +38,7 @@ import {
     addEmptyYears,
     transformToCumulative,
     loudToTitleCase,
-    determineChartWidth
+    // determineChartWidth
 } from './facetPlotHelpers'
 import { CategoryListType } from './FacetPlotInterface'
 import Button from 'react-bootstrap/Button';
@@ -51,6 +51,8 @@ import {
     addScreenResizeListener,
 } from '../utils/resizeMonitor.js'
 import StatsAppModal from "../StatsApp/Components/StatsAppModal";
+
+const {log} = console;
 
 const CHART_FILE_NAME: string = 'RCSB Statistics Chart'
 const viewSettingList: string[] = ["Released Annually", "Cumulative"]
@@ -116,12 +118,13 @@ export function FacetPlot(props: FacetPlotInterface) {
     // Element to measure for width
     const chartContainer: any = useRef();
     const chartContainerWidth = chartContainer?.current?.offsetWidth || null
-    console.log("chartContainerWidth", chartContainerWidth)
+    log("chartContainerWidth", chartContainerWidth)
 
     const modifiedChartConfig = cloneDeep(props.chartConfig)
-    const modifiedChartWidth = determineChartWidth(chartContainerWidth)
+    // const modifiedChartWidth = determineChartWidth(chartContainerWidth)
     if (modifiedChartConfig?.chartDisplayConfig?.constWidth) {
-        modifiedChartConfig.chartDisplayConfig.constWidth = modifiedChartWidth
+        log("modifiedChartConfig", chartContainerWidth)
+        modifiedChartConfig.chartDisplayConfig.constWidth = chartContainerWidth
     }
 
     // Check Chart type
@@ -148,11 +151,14 @@ export function FacetPlot(props: FacetPlotInterface) {
         setData([]);
         setViewSetting(viewSettingList[0])
         chartFacets(props).then(data => setData(data));
-        addScreenResizeListener(screenSize);
         setCategoriesToHide([])
         setIsFullScreen(false)
         setIsColorPickerOpen(false)
     }, [props]);
+
+    useEffect(() => {
+        addScreenResizeListener(screenSize);
+    }, [])
 
     let dataToDisplay:ChartObjectInterface[][] = data.map(
         dataSet => {
@@ -280,7 +286,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                     </div>
 
                     <p style={{ fontWeight: `bold` }}>Filter Data</p>
-                    <select onSelect={(e) => { console.log("selecting", e.target) }} >
+                    <select onSelect={(e) => { log("selecting", e.target) }} >
                         <option selected disabled value={0}>Source Organism</option>
                         <option value={1}>Homo Sapiens</option>
                         <option value={2}>Homo Erectus</option>
