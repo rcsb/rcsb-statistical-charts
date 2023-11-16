@@ -70,7 +70,7 @@ export function StatsApp() {
     return (
         <div>
             {/* @#@#@# can add "fluid" property to extend to edge of screen */}
-            <Container fluid ref={chartRef} className="StatsApp Component">
+            <Container ref={chartRef} className="StatsApp Component">
                 <Row>
                     <StatsNavBar />
 
@@ -131,7 +131,7 @@ function StatsNavBar() {
 
     return <div>
 
-        <Navbar expand="lg" className="bg-body-tertiary grayBox p-0 px-3 mt-3 mb-2">
+        <Navbar expand="xl" className="bg-body-tertiary grayBox p-0 px-3 mt-3 mb-2">
                 <Navbar.Brand href="#home">RCSB Statistics</Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
