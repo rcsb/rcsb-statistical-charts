@@ -6,7 +6,7 @@ import {StatsFacetInterface} from "./StatsFacetInterface";
 const globalChartConfig: ChartConfigInterface = {
     chartDisplayConfig: {
         constWidth: 700,
-        constHeight: 500
+        constHeight: 400
     },
     tooltipText: (d)=>{
         return d.id?.join(" ");

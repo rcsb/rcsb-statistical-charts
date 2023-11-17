@@ -109,6 +109,7 @@ export function FacetPlot(props: FacetPlotInterface) {
 
     // Manage Color Picker Modal and selection
     const [isColorPickerOpen, setIsColorPickerOpen] = useState<boolean>(false);
+    const [modalOpenName, setModalOpenName] = useState<string>("")
     const [chosenColorPaletteName, setChosenColorPaletteName] = useState<string>(Object.keys(ALL_COLORS)[0]);
     const chosenPalette: string[] = ALL_COLORS[chosenColorPaletteName] || ["#000000"]
 
@@ -121,11 +122,11 @@ export function FacetPlot(props: FacetPlotInterface) {
     log("chartContainerWidth", chartContainerWidth)
 
     const modifiedChartConfig = cloneDeep(props.chartConfig)
-    // const modifiedChartWidth = determineChartWidth(chartContainerWidth)
-    if (modifiedChartConfig?.chartDisplayConfig?.constWidth) {
-        log("modifiedChartConfig", chartContainerWidth)
-        modifiedChartConfig.chartDisplayConfig.constWidth = chartContainerWidth
-    }
+    // // const modifiedChartWidth = determineChartWidth(chartContainerWidth)
+    // if (modifiedChartConfig?.chartDisplayConfig?.constWidth) {
+    //     log("modifiedChartConfig", chartContainerWidth)
+    //     modifiedChartConfig.chartDisplayConfig.constWidth = chartContainerWidth
+    // }
 
     // Check Chart type
     const isHistogram: boolean = (props.chartType == ChartType.histogram)
@@ -153,7 +154,7 @@ export function FacetPlot(props: FacetPlotInterface) {
         chartFacets(props).then(data => setData(data));
         setCategoriesToHide([])
         setIsFullScreen(false)
-        setIsColorPickerOpen(false)
+        setModalOpenName("")
     }, [props]);
 
     useEffect(() => {
@@ -198,8 +199,6 @@ export function FacetPlot(props: FacetPlotInterface) {
         top: 0, bottom: 'unset', background: 'linear-gradient(to top, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%)'
     }
 
-    // @#@#@#
-    const derivedChartWidth = props?.chartConfig?.chartDisplayConfig?.constWidth || '225px'
     const fullScreenStyle = { position: 'fixed', height: '100vh', width: '100vw', top: 0, left: 0, backgroundColor: 'white', zIndex: '1000', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }
     let containerStyle = { fontSize: `12px` }
     if (isFullScreen) { containerStyle = { ...containerStyle, ...fullScreenStyle } }
@@ -208,7 +207,6 @@ export function FacetPlot(props: FacetPlotInterface) {
     // apply colors to dataset
     dataToDisplay = dataToDisplay.map((category, index) => {
         const color:string = chosenPalette[index % chosenPalette.length]
-        // const color:string = "black"
         return category.map((item) => {
             if(item?.objectConfig?.color) item.objectConfig.color = color
             return item
@@ -227,7 +225,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                         dataProvider={chartDataProvider}
                         chartConfig={modifiedChartConfig}
                     />
-                    <LegendComponent data={dataToDisplay} width={derivedChartWidth} />
+                    <LegendComponent data={dataToDisplay} width={props?.chartConfig?.chartDisplayConfig?.constWidth} />
                 </div>
 
                 {/* Chart Buttons */}
@@ -238,8 +236,8 @@ export function FacetPlot(props: FacetPlotInterface) {
                         <div className='mb-1'><Icon.Rotate onClick={() => { resetOptions(); showAllCategories(); }} /></div>
                     }
                     <div className='mb-1'><Icon.CameraLens onClick={() => saveTargetAsImage(chartRef.current, CHART_FILE_NAME)} /></div>
-                    <div className='mb-1'><Icon.LetterI onClick={() => alert("Information About Data (WIP)")} /></div>
-                    <div className='mb-1'><Icon.GridBox onClick={() => alert("Display Data Table (WIP)")} /></div>
+                    <div className='mb-1'><Icon.LetterI onClick={() => { setModalOpenName("info"); }} /></div>
+                    <div className='mb-1'><Icon.GridBox onClick={() => { setModalOpenName("grid") }} /></div>
                     <div className='mb-1'><a href={csvHelper.getSampleCSV()} target="_blank"><Icon.Download /></a></div>
                     <div className='mb-1'><Icon.ChartDisplay onClick={() => alert("Toggle Linear / Log Scale (WIP)")} /></div>
                     <div className='mb-1'><Icon.ColorWheel onClick={() => setIsColorPickerOpen(!isColorPickerOpen)} /></div>
@@ -297,15 +295,12 @@ export function FacetPlot(props: FacetPlotInterface) {
             </div>
 
             {/* Close Full Screen Mode */}
-            {
-                isFullScreen &&
-                <span style={closeFullScreenStyle} onClick={() => setIsFullScreen(false)}><Icon.CloseX /></span>
-            }
+            { isFullScreen && <span style={closeFullScreenStyle} onClick={() => setIsFullScreen(false)}><Icon.CloseX /></span> }
 
-            {/* <StatsAppModal showModal={true}>COLOR PICKER</StatsAppModal> */}
+            {/* Color Picker Modal */}
             {
-                isColorPickerOpen &&
-                <StatsAppModal show={isColorPickerOpen} handleClose={() => { setIsColorPickerOpen(false) }} title={`Color Picker`} >
+                modalOpenName === 'color' &&
+                <StatsAppModal show={true} handleClose={() => { setModalOpenName('') }} title={`Color Picker`} >
                     Choose a palette: ({loudToTitleCase(chosenColorPaletteName)})
                     {/* Normal Color Entries */}
                     {Object.entries(NON_COLORBLIND).map((entry: any) => {
@@ -322,6 +317,13 @@ export function FacetPlot(props: FacetPlotInterface) {
                             setChosenColorPaletteName(paletteName)
                         }}><input style={{margin: '5px'}} type='checkbox' checked={chosenColorPaletteName === paletteName} /> {colors.map((c: string) => createColorSpan(c))}</div>
                     })}
+                </StatsAppModal>
+            }
+
+            {/* Info Modal */}
+            {
+                modalOpenName === 'info' &&
+                <StatsAppModal show={true} handleClose={() => { setModalOpenName('') }} title={`Info on CHART TITLE`} >
                 </StatsAppModal>
             }
         </div>
@@ -430,6 +432,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                     objectId: [d.label, d.population],
                 }
             }))];
+        console.log("result", result)
         return result
     }
 
