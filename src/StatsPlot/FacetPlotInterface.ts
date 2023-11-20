@@ -11,6 +11,7 @@ export interface FacetPlotInterface {
     /**Principal feature displayed in the chart defined as search Facet. It defines the magnitude associated to the domain axis*/
     // firstDim: AttributeFacetType | FilterFacetType;
     firstDim: any;
+    firstDimName?: string;
     /**Histogram, barplot or pie (display not implemented)*/
     // chartType: ChartType;
     chartType: ChartType | undefined;
@@ -18,6 +19,7 @@ export interface FacetPlotInterface {
     returnType: ReturnType;
     /**Second feature displayed in the chart defined as search Facet. It is displayed as stack bars*/
     secondDim?: AttributeFacetType | FilterFacetType;
+    secondDimName?: string;
     /**Search query to filter the structural data. Otherwise, the whole structural archive is used*/
     searchQuery?: SearchQueryType;
     /**Configuration for the chart*/

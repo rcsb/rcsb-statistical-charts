@@ -1,5 +1,8 @@
 import * as React from "react";
-import { useState, useRef, useEffect } from "react";
+import {
+     useState,
+     useRef
+} from "react";
 
 import { ADDITIONAL_FACET_STORE, FACET_STORE } from "./FacetStore";
 import { FacetPlot } from "../StatsPlot/FacetPlot";
@@ -20,52 +23,28 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Button from 'react-bootstrap/Button';
 // import Button from 'react-bootstrap/Button';
 import ButtonGroup from 'react-bootstrap/ButtonGroup';
-import { addScreenResizeListener, removeScreenResizeListener } from "../utils/resizeMonitor";
 
 const CHART_FILE_NAME: string = 'RCSB Statistics Chart'
-// const textAndLinks = {
-//     "RCSB Statistics": "/",
-//     "About RCSB Statistics": "/",
-//     "Data Growth": "/",
-//     "Data Distribution": "/",
-//     "Other Statistics": "/",
-//     "PDB Data Snapshot": "/",
-//     "Build a Chart": "/",
-// }
+const baseUrl = window.location.href.split("?")[0]
 
 
 export function StatsApp() {
 
-    const [opt1, setOpt1] = useState<number>(0);
-    // @#@#@# default should be 0 for the real app
-    const [opt2, setOpt2] = useState<number>(2);
-    const mainFacet:StatsFacetInterface = FACET_STORE[opt1];
-    const additionalFacet:StatsFacetInterface = ADDITIONAL_FACET_STORE[opt2];
+    const [dataset1Index, setDataset1Index] = useState<number>(0);
+    const [dataset2Index, setDataset2Index] = useState<number>(2);
+    const mainFacet:StatsFacetInterface = FACET_STORE[dataset1Index];
+    const additionalFacet:StatsFacetInterface = ADDITIONAL_FACET_STORE[dataset2Index];
     const chartRef = useRef(null)
-    const [windowInnerWidth, setWindowInnerWidth] = useState(window.innerWidth)
 
-    function resetOptions(){
-        setOpt1(0);
-        setOpt2(0);
+    const reset = () => {
+        setDataset1Index(0);
+        setDataset2Index(0);
     }
 
-    useEffect(
-        () => {
-            const listenerFunction = (w: number) => {       
-                setWindowInnerWidth(w) 
-            }
-            addScreenResizeListener(listenerFunction)
-            return removeScreenResizeListener(listenerFunction)
-        },
-        [windowInnerWidth]
-    )
-
-    console.log("FACET_STORE", FACET_STORE)
 
     if (!mainFacet.facet || !mainFacet.chartType) return null;
-
-    //Add screen width to chartConfig object
-    // if (mainFacet?.chartConfig?.chartDisplayConfig?.constWidth) mainFacet.chartConfig.chartDisplayConfig.constWidth = determineChartWidth(windowInnerWidth)
+    // console.log("mainFacet.facet", mainFacet.facet)
+    // console.log("additionalFacet.facet", additionalFacet.facet)
 
     return (
         <div>
@@ -75,7 +54,9 @@ export function StatsApp() {
                     <StatsNavBar />
 
                     <FacetPlot
+                        firstDimName={mainFacet.facetName}
                         firstDim={mainFacet.facet}
+                        secondDimName={additionalFacet.facetName}
                         secondDim={
                             mainFacet.facetId != additionalFacet?.facetId ? additionalFacet?.facet : undefined
                         }
@@ -85,7 +66,7 @@ export function StatsApp() {
                             ...mainFacet.chartConfig,
                             histogramBinIncrement: 1,
                         }}
-                        resetOptions={resetOptions}
+                        resetOptions={reset}
                     />
                     <div style={{ margin: '100px 0 20px 0' }}>
                         {/* Select 1st Dataset */}
@@ -94,8 +75,8 @@ export function StatsApp() {
                                 <div className={`btn`}>1st Dimension:</div>
                                 {
                                     FACET_STORE.map((facet, index) => {
-                                        let buttonClass = index === opt1 ? 'btn-primary' : 'btn-light'
-                                        return <div className={`btn ${buttonClass}`} onClick={() => setOpt1(index)} key={index}>{facet.facetName}</div>
+                                        let buttonClass = index === dataset1Index ? 'btn-primary' : 'btn-light'
+                                        return <div className={`btn ${buttonClass}`} onClick={() => setDataset1Index(index)} key={index}>{facet.facetName}</div>
                                     })
                                 }
                             </ButtonGroup>
@@ -106,8 +87,8 @@ export function StatsApp() {
                                 <div className={`btn`}>2nd Dimension:</div>
                                 {
                                     ADDITIONAL_FACET_STORE.map((facet, index) => {
-                                        let buttonClass = index === opt2 ? 'btn-primary' : 'btn-light'
-                                        return <div className={`btn ${buttonClass}`} onClick={() => setOpt2(index)} key={index}>{facet.facetName}</div>
+                                        let buttonClass = index === dataset2Index ? 'btn-primary' : 'btn-light'
+                                        return <div className={`btn ${buttonClass}`} onClick={() => setDataset2Index(index)} key={index}>{facet.facetName}</div>
                                     })
                                 }
                             </ButtonGroup>
@@ -117,9 +98,32 @@ export function StatsApp() {
                         </div>
 
                     </div>
-                    {/* Draw the Chart */}
+                    {/* Adding some links to go to pages */}
+                    <div style={{ margin: '100px 0 20px 0' }}>
+                        <div>This area is meant to test different links to the various facet stores. Currently app does NOT support URL based chart facet selection.</div>
 
-                    {/* </div> */}
+                        {/* Select 1st Dataset */}
+
+                        <div className="" style={{ outline: '1px solid black' }}>
+                            <div>1</div>
+                            {
+                                FACET_STORE.map((facet, index) => {
+                                    let url = `${baseUrl}?facet1=${facet.facetName}`
+                                    return <div><a href={url} key={index}>{url}</a></div>
+                                })
+                            }
+                            <div>2</div>
+                            {
+                                FACET_STORE.map((f1, index) => {
+                                    let url = `${baseUrl}?facet1=${f1.facetName}`
+                                    return ADDITIONAL_FACET_STORE.filter((f2) => f2.facetName !== "None" && f2.facetName !== f1.facetName).map((f2, index) => {
+                                        return <div><a href={url} key={index}>{url}&facet2={f2.facetName}</a></div>
+                                    })
+                                })
+                            }
+                        </div>
+
+                    </div>
                 </Row>
             </Container>
         </div>
@@ -137,7 +141,7 @@ function StatsNavBar() {
                 <Navbar.Collapse id="basic-navbar-nav">
                     <Nav className="me-auto d-flex justify-content-around">
 
-                        <Nav.Link className="mx-3" href="/StatsApp.html">About RCSB Statistics</Nav.Link>
+                        <Nav.Link className="mx-3" href="/StatsApp.html">About</Nav.Link>
 
                         <NavDropdown className="mx-3" title="Data Growth" id="basic-nav-dropdown">
                             <NavDropdown.Item href="/StatsApp.html">Overall Growth of PDB Data</NavDropdown.Item>
@@ -162,9 +166,9 @@ function StatsNavBar() {
                         </NavDropdown>
 
 
-                        <Nav.Link className="mx-3" href="/StatsApp.html">Other Statistics</Nav.Link>
+                        <Nav.Link className="mx-3" href="/StatsApp.html">Other Stats</Nav.Link>
 
-                        <Nav.Link className="mx-3" href="/StatsApp.html">PDB Data Snapshot</Nav.Link>
+                        <Nav.Link className="mx-3" href="/StatsApp.html">PDB Snapshot</Nav.Link>
 
                         <Nav.Link className="mx-3" href="/StatsApp.html">
                             <Icon.Graph />Build a chart

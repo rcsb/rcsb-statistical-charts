@@ -51,6 +51,7 @@ import {
     addScreenResizeListener,
 } from '../utils/resizeMonitor.js'
 import StatsAppModal from "../StatsApp/Components/StatsAppModal";
+import chartInfo from './chartInfo'
 
 const {log} = console;
 
@@ -98,7 +99,7 @@ const closeFullScreenStyle = {
 
 // FacetPlot Component
 export function FacetPlot(props: FacetPlotInterface) {
-    const { resetOptions = function () { } } = props // clears user input
+    const { resetOptions = function () { }, firstDimName = "", secondDimName = "" } = props // clears user input
     const [data, setData] = useState<ChartObjectInterface[][]>([]); // RCSB data
     const [viewSetting, setViewSetting] = useState<string>(viewSettingList[0]); // annual or cumulative view
     const [categoriesToHide, setCategoriesToHide] = useState<string[]>([])
@@ -108,7 +109,6 @@ export function FacetPlot(props: FacetPlotInterface) {
     document.body.style.overflow = isFullScreen ? 'hidden' : 'auto'
 
     // Manage Color Picker Modal and selection
-    const [isColorPickerOpen, setIsColorPickerOpen] = useState<boolean>(false);
     const [modalOpenName, setModalOpenName] = useState<string>("")
     const [chosenColorPaletteName, setChosenColorPaletteName] = useState<string>(Object.keys(ALL_COLORS)[0]);
     const chosenPalette: string[] = ALL_COLORS[chosenColorPaletteName] || ["#000000"]
@@ -236,11 +236,11 @@ export function FacetPlot(props: FacetPlotInterface) {
                         <div className='mb-1'><Icon.Rotate onClick={() => { resetOptions(); showAllCategories(); }} /></div>
                     }
                     <div className='mb-1'><Icon.CameraLens onClick={() => saveTargetAsImage(chartRef.current, CHART_FILE_NAME)} /></div>
-                    <div className='mb-1'><Icon.LetterI onClick={() => { setModalOpenName("info"); }} /></div>
-                    <div className='mb-1'><Icon.GridBox onClick={() => { setModalOpenName("grid") }} /></div>
-                    <div className='mb-1'><a href={csvHelper.getSampleCSV()} target="_blank"><Icon.Download /></a></div>
-                    <div className='mb-1'><Icon.ChartDisplay onClick={() => alert("Toggle Linear / Log Scale (WIP)")} /></div>
-                    <div className='mb-1'><Icon.ColorWheel onClick={() => setIsColorPickerOpen(!isColorPickerOpen)} /></div>
+                    <div className='mb-1'><Icon.LetterI onClick={() => { setModalOpenName('info'); }} /></div>
+                    <div className='mb-1'><Icon.GridBox onClick={() => { setModalOpenName('grid') }} /></div>
+                    <div className='mb-1'><a href={csvHelper.getSampleCSV()} target='_blank'><Icon.Download /></a></div>
+                    <div className='mb-1'><Icon.ChartDisplay onClick={() => alert('Toggle Linear / Log Scale (WIP)')} /></div>
+                    <div className='mb-1'><Icon.ColorWheel onClick={() => setModalOpenName('color')} /></div>
                 </div>
 
                 {/* @#@#@# what is this? */}
@@ -283,7 +283,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                         }
                     </div>
 
-                    <p style={{ fontWeight: `bold` }}>Filter Data</p>
+                    <p className="mt-3" style={{ fontWeight: `bold` }}>Filter Data</p>
                     <select onSelect={(e) => { log("selecting", e.target) }} >
                         <option selected disabled value={0}>Source Organism</option>
                         <option value={1}>Homo Sapiens</option>
@@ -323,13 +323,21 @@ export function FacetPlot(props: FacetPlotInterface) {
             {/* Info Modal */}
             {
                 modalOpenName === 'info' &&
-                <StatsAppModal show={true} handleClose={() => { setModalOpenName('') }} title={`Info on CHART TITLE`} >
+                getChartInfo(firstDimName, secondDimName) &&
+                <StatsAppModal show={true} handleClose={() => { setModalOpenName('') }} title={getChartInfo(firstDimName, secondDimName).title} footer={getChartInfo(firstDimName, secondDimName).footer} >
+                    {getChartInfo(firstDimName, secondDimName).body}
                 </StatsAppModal>
             }
         </div>
     );
 
     // Helper functions ///////////////////////////////////////////////////////////////////////////////////////////
+    function getChartInfo(d1:string, d2:string){
+        const key = d1 !== d2  && d2 !== "None" ? `${d1} - ${d2}` : d1
+        const result = chartInfo[key] || {title:"",body:<></>,footer:<></>}
+        return result
+    }
+    
     function createColorSpan(color: string) {
         return <div style={{ display: 'inline-block', minHeight: '15px', minWidth: '15px', backgroundColor: color }}></div>
     }
@@ -500,7 +508,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                 <br />
                 {itemLimit < data.length && <a href="" onClick={increaseItemLimit}>See More</a>}&nbsp;
                 {itemLimit !== DEFAULT_ITEM_LIMIT && data?.length > DEFAULT_ITEM_LIMIT && <a href="" onClick={resetItemLimit}>See Less</a>}&nbsp;
-                ({Math.min(itemLimit, data.length)} of {data.length})
+                {data.length > DEFAULT_ITEM_LIMIT && `(${Math.min(itemLimit, data.length)} of ${data.length})`}
             </div>
         )
 
