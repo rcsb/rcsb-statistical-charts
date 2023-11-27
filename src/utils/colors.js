@@ -1,28 +1,37 @@
 const PRESET = {
     // https://www.heavy.ai/blog/12-color-palettes-for-telling-better-stories-with-your-data
-    "RETRO_METRO": ["#ea5545", "#f46a9b", "#ef9b20", "#edbf33", "#ede15b", "#bdcf32", "#87bc45", "#27aeef", "#b33dc6"],
-    "DUTCH_FIELD": ["#e60049", "#0bb4ff", "#50e991", "#e6d800", "#9b19f5", "#ffa300", "#dc0ab4", "#b3d4ff", "#00bfa0"],
-    "RIVER_NIGHTS": ["#b30000", "#7c1158", "#4421af", "#1a53ff", "#0d88e6", "#00b7c7", "#5ad45a", "#8be04e", "#ebdc78"],
-    "SPRING_PASTELS": ["#fd7f6f", "#7eb0d5", "#b2e061", "#bd7ebe", "#ffb55a", "#ffee65", "#beb9db", "#fdcce5", "#8bd3c7"],
-    "BLUE_TO_RED": ["#1984c5", "#22a7f0", "#63bff0", "#a7d5ed", "#e2e2e2", "#e1a692", "#de6e56", "#e14b31", "#c23728"],
-    "ORANGE_TO_PURPLE": ["#ffb400", "#d2980d", "#a57c1b", "#786028", "#363445", "#48446e", "#5e569b", "#776bcd", "#9080ff"],
-    "SALMON_TO_AQUA": ["#e27c7c", "#a86464", "#6d4b4b", "#503f3f", "#333333", "#3c4e4b", "#466964", "#599e94", "#6cd4c5"],
+    'RETRO_METRO': ['#ea5545', '#f46a9b', '#ef9b20', '#edbf33', '#ede15b', '#bdcf32', '#87bc45', '#27aeef', '#b33dc6'],
+    'DUTCH_FIELD': ['#e60049', '#0bb4ff', '#50e991', '#e6d800', '#9b19f5', '#ffa300', '#dc0ab4', '#b3d4ff', '#00bfa0'],
+    'RIVER_NIGHTS': ['#b30000', '#7c1158', '#4421af', '#1a53ff', '#0d88e6', '#00b7c7', '#5ad45a', '#8be04e', '#ebdc78'],
+    'SPRING_PASTELS': ['#fd7f6f', '#7eb0d5', '#b2e061', '#bd7ebe', '#ffb55a', '#ffee65', '#beb9db', '#fdcce5', '#8bd3c7'],
+    'BLUE_TO_RED': ['#1984c5', '#22a7f0', '#63bff0', '#a7d5ed', '#e2e2e2', '#e1a692', '#de6e56', '#e14b31', '#c23728'],
+    'ORANGE_TO_PURPLE': ['#ffb400', '#d2980d', '#a57c1b', '#786028', '#363445', '#48446e', '#5e569b', '#776bcd', '#9080ff'],
+    'SALMON_TO_AQUA': ['#e27c7c', '#a86464', '#6d4b4b', '#503f3f', '#333333', '#3c4e4b', '#466964', '#599e94', '#6cd4c5'],
 }
 
 const COLORBLIND = {
     // https://www.color-hex.com/color-palette/1018347
-    "BANG_WONG": ["#000000", "#829F01", "#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7"],
+    'BANG_WONG': [
+        '#000000', 
+        '#829F01', 
+        '#56B4E9', 
+        '#009E73', 
+        '#F0E442', 
+        '#0072B2', 
+        '#D55E00', 
+        '#CC79A7'
+    ],
     // https://personal.sron.nl/~pault/
-    "PAUL_TOL": [
-        "#2166AC",
-        "#4393C3",
-        "#92C5DE",
-        "#D1E5F0",
-        // "#F7F7F7", // This color is too light, close to white
-        "#FDDBC7",
-        "#F4A582",
-        "#D6604D",
-        "#B2182B"
+    'PAUL_TOL': [
+        '#2166AC',
+        '#4393C3',
+        '#92C5DE',
+        '#D1E5F0',
+        // '#F7F7F7', // This color is too light, close to white
+        '#FDDBC7',
+        '#F4A582',
+        '#D6604D',
+        '#B2182B'
     ]
 }
 
@@ -136,42 +145,49 @@ const IBM_ALL_COLORS = {
     ],
 }
 
+// Use only a subset of the whole color palette for IBM and HTML
 const IBM_COLORS = pickColorsFromPalette(IBM_ALL_COLORS, ['red', 'purple', 'blue', 'teal', 'green'], [8,6,4,2])
 const HTML_COLORS = pickColorsFromPalette(HTML_ALL_COLORS, ['aqua', 'blue', 'fuchsia', 'green', 'lime', 'maroon', 'navy', 'olive', 'red', 'silver', 'yellow'], [0])
 
 
 const NON_COLORBLIND = {
-    "IBM_COLORS": IBM_COLORS,
-    "HTML_COLORS": HTML_COLORS,
+    'IBM_COLORS': IBM_COLORS,
+    'HTML_COLORS': HTML_COLORS,
     ...PRESET,
 }
 
 const ALL_COLORS = {
-    "IBM_COLORS": IBM_COLORS,
-    "HTML_COLORS": HTML_COLORS,
+    'IBM_COLORS': IBM_COLORS,
+    'HTML_COLORS': HTML_COLORS,
     ...PRESET, 
     ...COLORBLIND
 }
 
 /**
- * 
+ * This function helps deal with the numerous shades and color choices being used in the IBM and HTML color palettes. You can pick specific hues 
  * @param {*} palette Object with colors as keys and array of brightnesses of that color
  * @param {*} colorsToUse Array of color names to use from object
  * @param {*} brightnessToUse Levels of brightness to pick from the array
  * @returns 
  */
-function pickColorsFromPalette(palette, colorsToUse, brightnessToUse){
+function pickColorsFromPalette(palette, hues, brightnesses){
     return Object
         .entries(palette) // Just entries
-        .filter(([key, colorArr]) => colorsToUse.includes(key)) // Only specific colorsToUse
-        .map(([key, colorArr]) => [key, colorArr.filter((c,i) => brightnessToUse.includes(i))]) // Only specific brightnesses
+        .filter(([key, colorArr]) => hues.includes(key)) // Only specific hues
+        .map(([key, colorArr]) => [key, colorArr.filter((c,i) => brightnesses.includes(i))]) // Only specific brightnesses
         .map(([a,b]) => b) // Only the color hexcodes
         .flat() // Single flat array
 }
 
-function getPalette(paletteName, shouldShuffle){
+/**
+ * Function to go grab a single color palette and optionally shuffle the order
+ * @param {*} paletteName - string should match the palette key above
+ * @param {*} shouldShuffle - boolean to run the shuffle function, in case you don't want the colors to be presented in the default order
+ * @returns 
+ */
+function getPalette(paletteName, shouldShuffle = false){
     const chosenPalette = ALL_COLORS[paletteName]
-    if(!chosenPalette) throw new Error("Palette Name does not match existing palettes")
+    if(!chosenPalette) throw new Error('Palette Name does not match existing palettes')
     if(shouldShuffle) return shuffle(chosenPalette)
     return chosenPalette
 }

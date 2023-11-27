@@ -1,5 +1,5 @@
-import {ChartObjectInterface} from "@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartConfigInterface";
-import {CategoryListType, CategoryDictType} from "./FacetPlotInterface"
+import {ChartObjectInterface} from '@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartConfigInterface';
+import {CategoryListType, CategoryDictType} from './FacetPlotInterface'
 
 /**
  * Transforms RCSB data into a list of categories
@@ -14,7 +14,7 @@ export function createCategoryListFromData(data:ChartObjectInterface[][]):Catego
     data.length > 1 && data.forEach(item => {
         item?.forEach(chartObject => {
             let [year, name, count] = chartObject?.objectConfig?.objectId
-            let color = chartObject?.objectConfig?.color || ""
+            let color = chartObject?.objectConfig?.color || ''
             if (categoryDict[name]) {
                 categoryDict[name].count += count
             } else {
@@ -77,7 +77,7 @@ export function findStartAndEndYearsForAll(categories: ChartObjectInterface[][])
 export function addEmptyYears(category: any[], start: number = 1800, end: number = new Date().getFullYear()
 ): any[] {
 
-    // Create array starting at "start" and ending at "end" in values
+    // Create array starting at 'start' and ending at 'end' in values
     let allYears = []
     const categoryDefaultColor:string = category[0].objectConfig.color
     const categoryDefaultId:string = category[0].objectConfig.objectId
@@ -153,11 +153,11 @@ export function createChartObject<ChartObjectInterface>(
 
 /**
  * Convert LOUD_CASE string to Proper Case
- * @param s Is a "LOUD_CASE" string
- * @returns a proper case string i.e. "Loud Case"
+ * @param s Is a 'LOUD_CASE' string
+ * @returns a proper case string i.e. 'Loud Case'
  */
 export function loudToTitleCase(s: String) {
-    return s.replace(/_/g, " ").toLowerCase().replace(
+    return s.replace(/_/g, ' ').toLowerCase().replace(
         /\w\S*/g,
         function (txt: string) {
             return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
@@ -166,7 +166,7 @@ export function loudToTitleCase(s: String) {
 }
 
 /**
- * The rcsb-charts library is a layer between rcsb-statistical-charts and the 3rd party chart.js library. chart.js's native behavior is for the chart to fill the horizontal container. rcsb-charts requires a "constWidth" and "constHeight" setting in order to display the chart. So this function will measure the screen and kind of act as CSS to determine the width of the charting portino of the app.
+ * The rcsb-charts library is a layer between rcsb-statistical-charts and the 3rd party chart.js library. chart.js's native behavior is for the chart to fill the horizontal container. rcsb-charts requires a 'constWidth' and 'constHeight' setting in order to display the chart. So this function will measure the screen and kind of act as CSS to determine the width of the charting portino of the app.
  * @param width - the size of the screen
  * @returns number - the size the chart should be
  */
@@ -175,6 +175,23 @@ export function determineChartWidth(width: number) {
     if (width > 1000) { result = width - 200 }
     else { result = width }
     // console.log(width, result)
-    console.log("determineChartWidth", width, result)
+    console.log('determineChartWidth', width, result)
     return 700 || result
+}
+
+/**
+ * 
+ * @param data ChartObjectInterface[][] - Data received from API
+ * @param categoriesToHide string[] - Names of categories to hide
+ * @returns ChartObjectInterface[][] - filtered with no empties
+ */
+export function filterOutHiddenCategories(data:ChartObjectInterface[][], categoriesToHide:string[]):ChartObjectInterface[][]{
+    return data.map(dataSet => {
+        return dataSet.filter(
+            dataPoint => {
+                // Filter out any categories that are to be hidden
+                return !categoriesToHide.includes(dataPoint?.objectConfig?.objectId[1])
+            }
+        )
+    }).filter(arr => arr.length !== 0)
 }

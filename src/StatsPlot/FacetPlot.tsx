@@ -1,36 +1,36 @@
-import * as React from "react";
-import { useEffect, useState, useRef } from "react";
+import * as React from 'react';
+import { useEffect, useState, useRef } from 'react';
 
-// import { ChartFacetPlotInterface, FacetPlotInterface } from "./FacetPlotInterface";
-import { FacetPlotInterface } from "./FacetPlotInterface";
-import { SearchQueryType, SearchRequestType } from "@rcsb/rcsb-search-tools/lib/SearchQueryTools/SearchQueryInterfaces";
+// import { ChartFacetPlotInterface, FacetPlotInterface } from './FacetPlotInterface';
+import { FacetPlotInterface } from './FacetPlotInterface';
+import { SearchQueryType, SearchRequestType } from '@rcsb/rcsb-search-tools/lib/SearchQueryTools/SearchQueryInterfaces';
 import {
     buildAttributeQuery,
     buildMultiFacet,
     buildRequestFromSearchQuery
-} from "@rcsb/rcsb-search-tools/lib/SearchQueryTools/SearchQueryTools";
-import { RcsbSearchMetadata } from "@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchMetadata";
-import { Service } from "@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchEnums";
+} from '@rcsb/rcsb-search-tools/lib/SearchQueryTools/SearchQueryTools';
+import { RcsbSearchMetadata } from '@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchMetadata';
+import { Service } from '@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchEnums';
 import {
     AttributeFacetType,
     FilterFacetType,
     SearchBucketFacetType
-} from "@rcsb/rcsb-search-tools/lib/SearchParseTools/SearchFacetInterface";
-import { cloneDeep } from "lodash";
-import { ChartComponent } from "@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartComponent";
+} from '@rcsb/rcsb-search-tools/lib/SearchParseTools/SearchFacetInterface';
+import { cloneDeep } from 'lodash';
+import { ChartComponent } from '@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartComponent';
 
-import { ChartObjectInterface, ChartType } from "@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartConfigInterface";
-import { SearchClient } from "@rcsb/rcsb-search-tools/lib/SearchClient/SearchClient";
-import { QueryResult } from "@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchResultInterface";
-import { getFacetsFromSearch } from "@rcsb/rcsb-search-tools/lib/SearchParseTools/SearchFacetTools";
-import { HistogramChartDataProvider } from "@rcsb/rcsb-charts/lib/RcsbChartDataProvider/HistogramChartDataProvider";
-import { BarChartDataProvider } from "@rcsb/rcsb-charts/lib/RcsbChartDataProvider/BarChartDataProvider";
+import { ChartObjectInterface, ChartType } from '@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartConfigInterface';
+import { SearchClient } from '@rcsb/rcsb-search-tools/lib/SearchClient/SearchClient';
+import { QueryResult } from '@rcsb/rcsb-api-tools/build/RcsbSearch/Types/SearchResultInterface';
+import { getFacetsFromSearch } from '@rcsb/rcsb-search-tools/lib/SearchParseTools/SearchFacetTools';
+import { HistogramChartDataProvider } from '@rcsb/rcsb-charts/lib/RcsbChartDataProvider/HistogramChartDataProvider';
+import { BarChartDataProvider } from '@rcsb/rcsb-charts/lib/RcsbChartDataProvider/BarChartDataProvider';
 import {
     ChartJsBarComponent
-} from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/ChatJsImplementations/ChartJsBarComponent";
+} from '@rcsb/rcsb-charts/lib/RcsbChartImplementations/ChatJsImplementations/ChartJsBarComponent';
 import {
     ChartJsHistogramComponent
-} from "@rcsb/rcsb-charts/lib/RcsbChartImplementations/ChatJsImplementations/ChartJsHistogramComponent";
+} from '@rcsb/rcsb-charts/lib/RcsbChartImplementations/ChatJsImplementations/ChartJsHistogramComponent';
 import { COLORBLIND, NON_COLORBLIND, getPalette } from '../utils/colors'
 import {
     createCategoryListFromData,
@@ -38,6 +38,7 @@ import {
     addEmptyYears,
     transformToCumulative,
     loudToTitleCase,
+    filterOutHiddenCategories
     // determineChartWidth
 } from './facetPlotHelpers'
 import { CategoryListType } from './FacetPlotInterface'
@@ -47,16 +48,17 @@ import Icon from '../StatsApp/Components/Icons'
 
 import csvHelper from '../utils/csvHelper.js'
 import saveTargetAsImage from '../utils/saveChart.js'
-import {
-    addScreenResizeListener,
-} from '../utils/resizeMonitor.js'
-import StatsAppModal from "../StatsApp/Components/StatsAppModal";
-import chartInfo from './chartInfo'
 
-const {log} = console;
+import StatsAppModal from '../StatsApp/Components/StatsAppModal';
+import { getChartInfo } from './chartInfo'
 
 const CHART_FILE_NAME: string = 'RCSB Statistics Chart'
-const viewSettingList: string[] = ["Released Annually", "Cumulative"]
+const viewSettingList: string[] = ['Released Annually', 'Cumulative']
+const MODAL_VIEWS: ModalEnum = {
+    GRID: 'GRID',
+    INFO: 'INFO',
+    COLOR: 'COLOR',
+}
 
 // CSS Styles
 const labelStyle = {
@@ -99,7 +101,7 @@ const closeFullScreenStyle = {
 
 // FacetPlot Component
 export function FacetPlot(props: FacetPlotInterface) {
-    const { resetOptions = function () { }, firstDimName = "", secondDimName = "" } = props // clears user input
+    const { firstDimName = '', secondDimName = '' } = props
     const [data, setData] = useState<ChartObjectInterface[][]>([]); // RCSB data
     const [viewSetting, setViewSetting] = useState<string>(viewSettingList[0]); // annual or cumulative view
     const [categoriesToHide, setCategoriesToHide] = useState<string[]>([])
@@ -109,44 +111,18 @@ export function FacetPlot(props: FacetPlotInterface) {
     document.body.style.overflow = isFullScreen ? 'hidden' : 'auto'
 
     // Manage Color Picker Modal and selection
-    const [modalOpenName, setModalOpenName] = useState<string>("")
+    const [openModalName, setOpenModalName] = useState<string>('')
     const [chosenColorPaletteName, setChosenColorPaletteName] = useState<string>(Object.keys(ALL_COLORS)[0]);
-    const chosenPalette: string[] = ALL_COLORS[chosenColorPaletteName] || ["#000000"]
+    const chosenColorPalette: string[] = ALL_COLORS[chosenColorPaletteName] || ['#000000']
 
     // Element to save as image ( with function saveTargetAsImage() )
     const chartRef = useRef(null)
-
-    // Element to measure for width
-    const chartContainer: any = useRef();
-    const chartContainerWidth = chartContainer?.current?.offsetWidth || null
-    log("chartContainerWidth", chartContainerWidth)
-
-    const modifiedChartConfig = cloneDeep(props.chartConfig)
-    // // const modifiedChartWidth = determineChartWidth(chartContainerWidth)
-    // if (modifiedChartConfig?.chartDisplayConfig?.constWidth) {
-    //     log("modifiedChartConfig", chartContainerWidth)
-    //     modifiedChartConfig.chartDisplayConfig.constWidth = chartContainerWidth
-    // }
 
     // Check Chart type
     const isHistogram: boolean = (props.chartType == ChartType.histogram)
     const is2dData: boolean = props.secondDim ? true : false
 
-
     const categories: any[] = createCategoryListFromData(data)
-
-    // Hide all, show all, toggle specific categories in the chart
-    function hideAllCategories() { setCategoriesToHide(categories.map(item => item.name)) }
-    function showAllCategories() { setCategoriesToHide([]) }
-    function toggleCategory(category: string) {
-        if (categoriesToHide.includes(category)) {
-            setCategoriesToHide(categoriesToHide.filter(item => item !== category))
-        } else {
-            setCategoriesToHide([...categoriesToHide, category])
-        }
-    }
-
-    function screenSize(w: number, h: number) { console.log(w, h) }
 
     useEffect(() => {
         setData([]);
@@ -154,23 +130,10 @@ export function FacetPlot(props: FacetPlotInterface) {
         chartFacets(props).then(data => setData(data));
         setCategoriesToHide([])
         setIsFullScreen(false)
-        setModalOpenName("")
+        setOpenModalName('')
     }, [props]);
 
-    useEffect(() => {
-        addScreenResizeListener(screenSize);
-    }, [])
-
-    let dataToDisplay:ChartObjectInterface[][] = data.map(
-        dataSet => {
-            return dataSet.filter(
-                dataPoint => {
-                    // Filter out any categories that are to be hidden
-                    return !categoriesToHide.includes(dataPoint?.objectConfig?.objectId[1])
-                }
-            )
-        }
-    ).filter(arr => arr.length !== 0)
+    let dataToDisplay:ChartObjectInterface[][] = filterOutHiddenCategories(data, categoriesToHide)
 
     // Mutate dataToDisplay when cumulative
     if (viewSetting === 'Cumulative') {
@@ -206,89 +169,89 @@ export function FacetPlot(props: FacetPlotInterface) {
 
     // apply colors to dataset
     dataToDisplay = dataToDisplay.map((category, index) => {
-        const color:string = chosenPalette[index % chosenPalette.length]
+        const color:string = chosenColorPalette[index % chosenColorPalette.length]
         return category.map((item) => {
             if(item?.objectConfig?.color) item.objectConfig.color = color
             return item
         })
     })
 
+    const chartInfoForModal = getChartInfo(firstDimName, secondDimName)
+
     return (
         <div style={containerStyle} ref={chartRef}>
-            <h3>Title of Chart</h3>
+            <h3>{chartInfoForModal.title}</h3>
             <div className='FacetPlot Component' style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap' }}>
                 {/* Chart */}
-                <div ref={chartContainer}>
+                <div>
                     <ChartComponent
                         data={dataToDisplay}
                         chartComponentImplementation={chartType}
                         dataProvider={chartDataProvider}
-                        chartConfig={modifiedChartConfig}
+                        chartConfig={props.chartConfig}
                     />
-                    <LegendComponent data={dataToDisplay} width={props?.chartConfig?.chartDisplayConfig?.constWidth} />
+                    <LegendContainer data={dataToDisplay} width={props?.chartConfig?.chartDisplayConfig?.constWidth} />
                 </div>
 
                 {/* Chart Buttons */}
                 <div style={{ width: `50px`, height: `100%`, textAlign: `center`, margin: `10px` }}>
-                    <div className='mb-1'><Icon.FullScreen onClick={() => setIsFullScreen(!isFullScreen)} /></div>
-                    {
-                        props?.resetOptions &&
-                        <div className='mb-1'><Icon.Rotate onClick={() => { resetOptions(); showAllCategories(); }} /></div>
-                    }
-                    <div className='mb-1'><Icon.CameraLens onClick={() => saveTargetAsImage(chartRef.current, CHART_FILE_NAME)} /></div>
-                    <div className='mb-1'><Icon.LetterI onClick={() => { setModalOpenName('info'); }} /></div>
-                    <div className='mb-1'><Icon.GridBox onClick={() => { setModalOpenName('grid') }} /></div>
-                    <div className='mb-1'><a href={csvHelper.getSampleCSV()} target='_blank'><Icon.Download /></a></div>
-                    <div className='mb-1'><Icon.ChartDisplay onClick={() => alert('Toggle Linear / Log Scale (WIP)')} /></div>
-                    <div className='mb-1'><Icon.ColorWheel onClick={() => setModalOpenName('color')} /></div>
+                    <div className='mb-1' role='button'><Icon.FullScreen onClick={() => setIsFullScreen(!isFullScreen)} /></div>
+                    <div className='mb-1' role='button'><Icon.Rotate onClick={() => { showAllCategories(); }} /></div>
+                    <div className='mb-1' role='button'><Icon.CameraLens onClick={() => saveTargetAsImage(chartRef.current, CHART_FILE_NAME)} /></div>
+                    <div className='mb-1' role='button'><Icon.LetterI onClick={() => { setOpenModalName(MODAL_VIEWS.INFO); }} /></div>
+                    <div className='mb-1' role='button'><Icon.GridBox onClick={() => { setOpenModalName(MODAL_VIEWS.GRID) }} /></div>
+                    <div className='mb-1' role='button'><a href={csvHelper.getSampleCSV()} target='_blank'><Icon.Download /></a></div>
+                    <div className='mb-1' role='button'><Icon.ChartDisplay onClick={() => alert('Toggle Linear / Log Scale (WIP) \nProbably needs to be configured as an option in the RCSB-Statistics library')} /></div>
+                    <div className='mb-1' role='button'><Icon.ColorWheel onClick={() => setOpenModalName(MODAL_VIEWS.COLOR)} /></div>
                 </div>
 
-                {/* @#@#@# what is this? */}
-                {/* <a href="http://sstatic.net/stackexchange/img/logos/so/so-logo.png" download="logo.png"></a> */}
-
-
                 {/* Sidebar */}
-                <div className="p-3 flex-grow-1" style={{ textAlign: 'left', width: `100%`, maxWidth: `300px`, borderLeft: `2px solid #D1D0D0` }}>
+                <div className='p-3 flex-grow-1' style={{ textAlign: `left`, width: `100%`, maxWidth: `300px`, borderLeft: `2px solid #D1D0D0` }}>
 
                     <h6 style={{ fontWeight: `bold` }}>Data Options</h6>
-                    {/* <hr className="hr hr-blurry" /> */}
-
-                    {/* All Categories */}
-                    <div style={{ position: 'relative' }}>
-                        <div style={whiteFadeTop}></div>
-                        <div style={categoryStyle}>
-                            {categories.map(createCategoryCheckbox)}
-                        </div>
-                        <div style={whiteFadeBottom}></div>
-                    </div>
-
-                    {/* Hide all, show all buttons */}
                     {
-                        isHistogram &&
                         is2dData &&
                         <div>
-                            <Button variant='primary' style={{ fontSize: `12px` }} className='py-0 px-1' onClick={showAllCategories}>Show All</Button>
-                            <Button variant='warning' style={{ fontSize: `12px` }} className='py-0 px-1 mx-1' onClick={hideAllCategories}>Hide All</Button>
+                            {/* All Categories */}
+                            <div style={{ position: `relative` }}>
+                                <div style={whiteFadeTop}></div>
+                                <div style={categoryStyle}>
+                                    {categories.map(createCategoryCheckbox)}
+                                </div>
+                                <div style={whiteFadeBottom}></div>
+                            </div>
+
+                            {/* Hide all, show all buttons. Not in final design (debugging) */}
+
+                            <div>
+                                <Button variant='primary' style={{ fontSize: `12px` }} className='py-0 px-1' onClick={showAllCategories}>Show All</Button>
+                                <Button variant='warning' style={{ fontSize: `12px` }} className='py-0 px-1 mx-1' onClick={hideAllCategories}>Hide All</Button>
+                            </div>
+
+                        </div>
+                    }
+                    
+
+                    {/* Annual, Cumulative buttons */}
+
+                    {
+                        isHistogram &&
+                        <div>
+                            <p className='mt-3' style={{ fontWeight: `bold` }}>Data Set</p>
+
+                            {viewSettingList.map((s:string, i:number) =>
+                                createRadioButton(s, i, viewSetting === s, () => { setViewSetting(s) })
+                            )}
                         </div>
                     }
 
-                    {/* Annual, Cumulative buttons */}
-                    <p className="mt-3" style={{ fontWeight: `bold` }}>Data Set</p>
-                    <div>
-                        {
-                            isHistogram &&
-                            viewSettingList.map(s =>
-                                createRadioButton(s, viewSetting === s, () => { setViewSetting(s) })
-                            )
-                        }
-                    </div>
-
-                    <p className="mt-3" style={{ fontWeight: `bold` }}>Filter Data</p>
-                    <select onSelect={(e) => { log("selecting", e.target) }} >
-                        <option selected disabled value={0}>Source Organism</option>
-                        <option value={1}>Homo Sapiens</option>
-                        <option value={2}>Homo Erectus</option>
-                        <option value={3}>Homo Habilis</option>
+                    {/* Not functional, placeholder HTML */}
+                    <p className='mt-3' style={{ fontWeight: `bold` }}>Filter Data (not functional)</p>
+                    <select onChange={(e) => { alert('selecting ' + e.target.value) }} defaultValue={'Source Organism'}>
+                        <option disabled value={'Source Organism'}>Source Organism</option>
+                        <option value={'Homo Sapiens'}>Homo Sapiens</option>
+                        <option value={'Homo Erectus'}>Homo Erectus</option>
+                        <option value={'Homo Habilis'}>Homo Habilis</option>
                     </select>
 
                 </div>
@@ -299,76 +262,91 @@ export function FacetPlot(props: FacetPlotInterface) {
 
             {/* Color Picker Modal */}
             {
-                modalOpenName === 'color' &&
-                <StatsAppModal show={true} handleClose={() => { setModalOpenName('') }} title={`Color Picker`} >
-                    Choose a palette: ({loudToTitleCase(chosenColorPaletteName)})
+                openModalName === MODAL_VIEWS.COLOR &&
+                <StatsAppModal show={true} handleClose={() => { setOpenModalName('') }} title={`Color Picker`} >
+                    Choose palette: ({loudToTitleCase(chosenColorPaletteName)})
                     {/* Normal Color Entries */}
-                    {Object.entries(NON_COLORBLIND).map((entry: any) => {
+                    {Object.entries(NON_COLORBLIND).map((entry: any, index: number) => {
                         const [paletteName, colors] = entry;
                         return <div style={{display:'flex', alignItems: 'center', flexWrap: 'wrap'}} onClick={() => {
                             setChosenColorPaletteName(paletteName)
-                        }}><input style={{margin: '5px'}} type='checkbox' checked={chosenColorPaletteName === paletteName} /> {colors.map((c: string) => createColorSpan(c))}</div>
+                        }}><input key={index} style={{margin: '5px'}} type='checkbox' checked={chosenColorPaletteName === paletteName} /> {colors.map((c: string, i: number) => createColorSpan(c,i))}</div>
                     })}
                     {/* Colorblind Entries */}
-                    {Object.keys(COLORBLIND).length && "Colorblind:"}
-                    {Object.entries(COLORBLIND).map((entry: any) => {
+                    {Object.keys(COLORBLIND).length && 'Colorblind Friendly'}
+                    {Object.entries(COLORBLIND).map((entry: any, index: number) => {
                         const [paletteName, colors] = entry;
-                        return <div style={{display:'flex', alignItems: 'center', flexWrap: 'wrap'}} onClick={() => {
+                        return <div key={index} style={{display:'flex', alignItems: 'center', flexWrap: 'wrap'}} onClick={() => {
                             setChosenColorPaletteName(paletteName)
-                        }}><input style={{margin: '5px'}} type='checkbox' checked={chosenColorPaletteName === paletteName} /> {colors.map((c: string) => createColorSpan(c))}</div>
+                        }}><input style={{margin: '5px'}} type='checkbox' checked={chosenColorPaletteName === paletteName} /> {colors.map((c: string, i:number) => createColorSpan(c,i))}</div>
                     })}
                 </StatsAppModal>
             }
 
             {/* Info Modal */}
             {
-                modalOpenName === 'info' &&
-                getChartInfo(firstDimName, secondDimName) &&
-                <StatsAppModal show={true} handleClose={() => { setModalOpenName('') }} title={getChartInfo(firstDimName, secondDimName).title} footer={getChartInfo(firstDimName, secondDimName).footer} >
-                    {getChartInfo(firstDimName, secondDimName).body}
+                openModalName === MODAL_VIEWS.INFO &&
+                chartInfoForModal &&
+                <StatsAppModal show={true} handleClose={() => { setOpenModalName('') }} title={chartInfoForModal.title} footer={chartInfoForModal.footer} >
+                    {chartInfoForModal.body}
+                </StatsAppModal>
+            }
+            
+            {/* Grid Modal */}
+            {
+                openModalName === MODAL_VIEWS.GRID &&
+                chartInfoForModal &&
+                <StatsAppModal show={true} handleClose={() => { setOpenModalName('') }} title={chartInfoForModal.title} footer={chartInfoForModal.footer} >
+                    {chartInfoForModal.body}
                 </StatsAppModal>
             }
         </div>
     );
 
-    // Helper functions ///////////////////////////////////////////////////////////////////////////////////////////
-    function getChartInfo(d1:string, d2:string){
-        const key = d1 !== d2  && d2 !== "None" ? `${d1} - ${d2}` : d1
-        const result = chartInfo[key] || {title:"",body:<></>,footer:<></>}
-        return result
-    }
+    // Helper functions //////////////////////////////////////////////////////////////////////////////////
     
-    function createColorSpan(color: string) {
-        return <div style={{ display: 'inline-block', minHeight: '15px', minWidth: '15px', backgroundColor: color }}></div>
+    // Hide all, show all, toggle specific categories in the chart
+    function hideAllCategories() { setCategoriesToHide(categories.map(item => item.name)) }
+    function showAllCategories() { setCategoriesToHide([]) }
+    function toggleCategory(category: string) {
+        if (categoriesToHide.includes(category)) {
+            setCategoriesToHide(categoriesToHide.filter(item => item !== category))
+        } else {
+            setCategoriesToHide([...categoriesToHide, category])
+        }
     }
 
-    function createCategoryCheckbox(c: CategoryListType, index: number) {
-        let isHidden: boolean = categoriesToHide.includes(c.name)
+    function createColorSpan(color: string, index: number) {
+        return <div key={index} style={{ display: 'inline-block', minHeight: '15px', minWidth: '15px', backgroundColor: color }}></div>
+    }
 
-        let labelStyleCopy = {
+    function createCategoryCheckbox(category: CategoryListType, index: number) {
+        let isHidden: boolean = categoriesToHide.includes(category.name)
+
+        let categoryCheckboxLabelStyle = {
             ...labelStyle,
-            backgroundColor: isHidden ? 'transparent' : c.color,
-            border: `3px solid ${c.color}`,
-            color: c.color
+            backgroundColor: isHidden ? 'transparent' : category.color,
+            border: `3px solid ${category.color}`,
+            color: category.color
         }
 
         return (
             <div className='categories.map' style={categoryContainerStyle} key={index}>
-                <div style={categoryLineStyle} onClick={() => toggleCategory(c.name)} >
+                <div style={categoryLineStyle} onClick={() => toggleCategory(category.name)} >
                     {/* This is the checkbox */}
-                    <label style={labelStyleCopy}>
+                    <label style={categoryCheckboxLabelStyle}>
                         {/* This is the checkmark */}
-                        <span style={{ color: "white" }}>{!isHidden && '✓'}</span>
+                        <span style={{ color: 'white' }}>{!isHidden && '✓'}</span>
                     </label>
                     {/* Text */}
-                    {c.name}
+                    {category.name}
                 </div>
             </div>
         )
     }
 
-    function createRadioButton(text: string, isChecked: boolean = false, onClickFn: React.MouseEventHandler<HTMLElement> = () => { }) {
-        let labelStyleCopy = {
+    function createRadioButton(text: string, index: number, isChecked: boolean = false, onClickFn: React.MouseEventHandler<HTMLElement> = () => { }) {
+        let radioButtonLabelStyle = {
             ...labelStyle,
             backgroundColor: isChecked ? `blue` : `transparent`,
             border: `3px solid blue`,
@@ -376,18 +354,17 @@ export function FacetPlot(props: FacetPlotInterface) {
             borderRadius: `50%`
         }
         return (
-            <div className='categories.map' style={categoryContainerStyle}>
+            <div key={index} className='categories.map' style={categoryContainerStyle}>
                 <div style={categoryLineStyle} onClick={onClickFn} >
                     {/* This is the radio button */}
-                    <label style={labelStyleCopy}></label>
-                    {/* Text */}
+                    <label style={radioButtonLabelStyle}></label>
                     {text}
                 </div>
             </div>
         )
     }
 
-    async function chartFacets(props: Omit<FacetPlotInterface, "chartType">): Promise<ChartObjectInterface[][]> {
+    async function chartFacets(props: Omit<FacetPlotInterface, 'chartType'>): Promise<ChartObjectInterface[][]> {
 
         // Destructure RcsbSearchMetadata
         const { RcsbEntryInfo: {
@@ -409,8 +386,8 @@ export function FacetPlot(props: FacetPlotInterface) {
         // Copy the firstDim
         const clonedFacet: AttributeFacetType | FilterFacetType = cloneDeep(props.firstDim);
 
-        if (props.secondDim) // Mutate facet if 2nd dimension
-            buildMultiFacet(props.secondDim, clonedFacet); // recursively adds 
+        // Mutate facet if 2nd dimension
+        if (props.secondDim) buildMultiFacet(props.secondDim, clonedFacet); // recursively adds 
 
         // Create request query
         const searchRequest: SearchRequestType = buildRequestFromSearchQuery(
@@ -426,7 +403,7 @@ export function FacetPlot(props: FacetPlotInterface) {
         if (!queryResults)
             return [[]];
 
-        // buckets is the actual data [{data:[{label: "word", population: 100}, {... repeats}}]}]
+        // buckets is the actual data [{data:[{label: 'word', population: 100}, {... repeats}}]}]
         const buckets = getFacetsFromSearch(queryResults);
         const secondDim = props.secondDim;
         let result;
@@ -440,7 +417,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                     objectId: [d.label, d.population],
                 }
             }))];
-        console.log("result", result)
+
         return result
     }
 
@@ -476,7 +453,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                         label: domItem,
                         population: valueMap.get(domItem)?.get(label) ?? 0,
                         objectConfig: {
-                            color: chosenPalette[index % chosenPalette.length],
+                            color: chosenColorPalette[index % chosenColorPalette.length],
                             objectId: [domItem, label, valueMap.get(domItem)?.get(label)]
                         }
                     })
@@ -490,25 +467,34 @@ export function FacetPlot(props: FacetPlotInterface) {
         if ('name' in facet)
             return facet.name
         if (!facet.facets || facet.facets.length != 1)
-            throw new Error("Multiple facets are not allowed");
+            throw new Error('Multiple facets are not allowed');
         return getFacetName(facet.facets[0]);
     }
 
-    function LegendComponent(props: any) {
+    function LegendContainer(props: any) {
+        
         const data: any = props.data
-        // const width:string = `${props.width}px`
+
+        // How to handle legend for entries that have one color?
+        if(data.length <= 1 || isHistogram === false) return null // do not show?
+
         const DEFAULT_ITEM_LIMIT = 10
-        const DEFAULT_COLOR = "#999999"
+        const DEFAULT_COLOR = '#999999'
         const [itemLimit, setItemLimit] = useState(DEFAULT_ITEM_LIMIT);
-        const legendItemHTML = data.slice(0, itemLimit).map((item: any, index: number) => legendItem(item[0], index))
+        const dataSubset = data.slice(0, itemLimit)
+        const legendItemHTML = dataSubset.map((item: any, index: number) => legendItem(item[0], index))
+        const showSeeMoreButton = itemLimit < data.length
+        const showSeeLessButton = itemLimit !== DEFAULT_ITEM_LIMIT && data?.length > DEFAULT_ITEM_LIMIT
+        const showCountOfLegendItems = data.length > DEFAULT_ITEM_LIMIT
+        const itemLimitCount = Math.min(itemLimit, data.length)
 
         return (
             <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center', flexWrap: 'wrap', width: props.width, marginLeft: 'auto' }}>
                 {legendItemHTML}
                 <br />
-                {itemLimit < data.length && <a href="" onClick={increaseItemLimit}>See More</a>}&nbsp;
-                {itemLimit !== DEFAULT_ITEM_LIMIT && data?.length > DEFAULT_ITEM_LIMIT && <a href="" onClick={resetItemLimit}>See Less</a>}&nbsp;
-                {data.length > DEFAULT_ITEM_LIMIT && `(${Math.min(itemLimit, data.length)} of ${data.length})`}
+                {showSeeMoreButton && <a href='' onClick={increaseItemLimit}>See More</a>}&nbsp;
+                {showSeeLessButton && <a href='' onClick={resetItemLimit}>See Less</a>}&nbsp;
+                {showCountOfLegendItems && `(${itemLimitCount} of ${data.length})`}
             </div>
         )
 
@@ -529,8 +515,6 @@ export function FacetPlot(props: FacetPlotInterface) {
     }
 }
 
-// Constants
-
 const ALL_COLORS: ColorPallettes = {
     IBM_COLORS: getPalette('IBM_COLORS'),
     HTML_COLORS: getPalette('HTML_COLORS'),
@@ -547,4 +531,8 @@ const ALL_COLORS: ColorPallettes = {
 
 interface ColorPallettes{
     [propName: string]: string[];
+}
+
+interface ModalEnum {
+    [key:string]: string;
 }
