@@ -99,6 +99,8 @@ const closeFullScreenStyle = {
     padding: '10px'
 } as React.CSSProperties
 
+const sidebarStyle = { textAlign: `left`, width: `100%`, maxWidth: `300px`, borderLeft: `2px solid #D1D0D0` } as React.CSSProperties
+
 // FacetPlot Component
 export function FacetPlot(props: FacetPlotInterface) {
     const { firstDimName = '', secondDimName = '' } = props
@@ -179,11 +181,11 @@ export function FacetPlot(props: FacetPlotInterface) {
     const chartInfoForModal = getChartInfo(firstDimName, secondDimName)
 
     return (
-        <div style={containerStyle} ref={chartRef}>
-            <h3>{chartInfoForModal.title}</h3>
-            <div className='FacetPlot Component' style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap' }}>
+        <div className='FacetPlot Component' style={containerStyle} >
+            <div className='d-flex flex-row flex-nowrap'>
                 {/* Chart */}
-                <div>
+                <div ref={chartRef}>
+                    <h3>{chartInfoForModal.title}</h3>
                     <ChartComponent
                         data={dataToDisplay}
                         chartComponentImplementation={chartType}
@@ -194,7 +196,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                 </div>
 
                 {/* Chart Buttons */}
-                <div style={{ width: `50px`, height: `100%`, textAlign: `center`, margin: `10px` }}>
+                <div className='pt-5' style={{ width: `50px`, height: `100%`, textAlign: `center`, margin: `10px` }}>
                     <div className='mb-1' role='button'><Icon.FullScreen onClick={() => setIsFullScreen(!isFullScreen)} /></div>
                     <div className='mb-1' role='button'><Icon.Rotate onClick={() => { showAllCategories(); }} /></div>
                     <div className='mb-1' role='button'><Icon.CameraLens onClick={() => saveTargetAsImage(chartRef.current, CHART_FILE_NAME)} /></div>
@@ -206,9 +208,8 @@ export function FacetPlot(props: FacetPlotInterface) {
                 </div>
 
                 {/* Sidebar */}
-                <div className='p-3 flex-grow-1' style={{ textAlign: `left`, width: `100%`, maxWidth: `300px`, borderLeft: `2px solid #D1D0D0` }}>
-
-                    <h6 style={{ fontWeight: `bold` }}>Data Options</h6>
+                <div className='p-3 pt-5 flex-grow-1' style={sidebarStyle}>
+                    <h6 className='fw-bold'>Data Options</h6>
                     {
                         is2dData &&
                         <div>
@@ -237,7 +238,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                     {
                         isHistogram &&
                         <div>
-                            <p className='mt-3' style={{ fontWeight: `bold` }}>Data Set</p>
+                            <p className='mt-3 fw-bold'>Data Set</p>
 
                             {viewSettingList.map((s:string, i:number) =>
                                 createRadioButton(s, i, viewSetting === s, () => { setViewSetting(s) })
@@ -246,7 +247,7 @@ export function FacetPlot(props: FacetPlotInterface) {
                     }
 
                     {/* Not functional, placeholder HTML */}
-                    <p className='mt-3' style={{ fontWeight: `bold` }}>Filter Data (not functional)</p>
+                    <p className='mt-3 fw-bold'>Filter Data (not functional)</p>
                     <select onChange={(e) => { alert('selecting ' + e.target.value) }} defaultValue={'Source Organism'}>
                         <option disabled value={'Source Organism'}>Source Organism</option>
                         <option value={'Homo Sapiens'}>Homo Sapiens</option>
@@ -268,17 +269,17 @@ export function FacetPlot(props: FacetPlotInterface) {
                     {/* Normal Color Entries */}
                     {Object.entries(NON_COLORBLIND).map((entry: any, index: number) => {
                         const [paletteName, colors] = entry;
-                        return <div style={{display:'flex', alignItems: 'center', flexWrap: 'wrap'}} onClick={() => {
+                        return <div className='d-flex align-items-center flex-wrap' onClick={() => {
                             setChosenColorPaletteName(paletteName)
-                        }}><input key={index} style={{margin: '5px'}} type='checkbox' checked={chosenColorPaletteName === paletteName} /> {colors.map((c: string, i: number) => createColorSpan(c,i))}</div>
+                        }}><input key={index} className='m-2' type='checkbox' checked={chosenColorPaletteName === paletteName} /> {colors.map((c: string, i: number) => createColorSpan(c,i))}</div>
                     })}
                     {/* Colorblind Entries */}
                     {Object.keys(COLORBLIND).length && 'Colorblind Friendly'}
                     {Object.entries(COLORBLIND).map((entry: any, index: number) => {
                         const [paletteName, colors] = entry;
-                        return <div key={index} style={{display:'flex', alignItems: 'center', flexWrap: 'wrap'}} onClick={() => {
+                        return <div key={index} className='d-flex align-items-center flex-wrap' onClick={() => {
                             setChosenColorPaletteName(paletteName)
-                        }}><input style={{margin: '5px'}} type='checkbox' checked={chosenColorPaletteName === paletteName} /> {colors.map((c: string, i:number) => createColorSpan(c,i))}</div>
+                        }}><input className='m-2' type='checkbox' checked={chosenColorPaletteName === paletteName} /> {colors.map((c: string, i:number) => createColorSpan(c,i))}</div>
                     })}
                 </StatsAppModal>
             }
