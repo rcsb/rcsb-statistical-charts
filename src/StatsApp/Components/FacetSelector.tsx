@@ -26,7 +26,7 @@ export function FacetSelector(props: FacetSelectorProps){
     }, []);
 
     return (<>
-        <div style={{display:"inline-block", marginRight:15, fontFamily:"Arial, Helvetica, sans-serif", fontSize:12, color:"#666"}}>
+        <div className="FacetSelector Component" style={{display:"inline-block", marginRight:15, fontFamily:"Arial, Helvetica, sans-serif", fontSize:12, color:"#666"}}>
             {props.selectorRole.toUpperCase()} ATTRIBUTE:
         </div>
         <select style={{marginRight:20, outline:"none"}} ref={selectEl} id={`facet-selector-${props.componentId}`} >

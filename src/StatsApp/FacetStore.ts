@@ -3,10 +3,10 @@ import {AggregationType, Interval, Service, Type} from "@rcsb/rcsb-api-tools/bui
 import {ChartConfigInterface, ChartType} from "@rcsb/rcsb-charts/lib/RcsbChartComponent/ChartConfigInterface";
 import {StatsFacetInterface} from "./StatsFacetInterface";
 
-const globalChatConfig: ChartConfigInterface = {
+const globalChartConfig: ChartConfigInterface = {
     chartDisplayConfig: {
-        constWidth: 1200,
-        constHeight: 600
+        constWidth: 700,
+        constHeight: 400
     },
     tooltipText: (d)=>{
         return d.id?.join(" ");
@@ -25,7 +25,7 @@ const RELEASE_DATE: StatsFacetInterface = {
         min_interval_population: 0
     },
     chartConfig: {
-        ...globalChatConfig
+        ...globalChartConfig
     }
 };
 
@@ -36,10 +36,10 @@ const EXPL_METHOD: StatsFacetInterface = {
     facet: {
         name: `FACET/${RcsbSearchMetadata.Exptl.Method.path}`,
         aggregation_type: AggregationType.Terms,
-        attribute: RcsbSearchMetadata.Exptl.Method.path
+        attribute: RcsbSearchMetadata.RcsbEntryInfo.ExperimentalMethod.path
     },
     chartConfig: {
-        ...globalChatConfig,
+        ...globalChartConfig,
         mostPopulatedGroups: 3
     }
 };
@@ -54,7 +54,7 @@ const ORGANISM: StatsFacetInterface = {
         attribute: RcsbSearchMetadata.RcsbEntitySourceOrganism.NcbiScientificName.path,
     },
     chartConfig: {
-        ...globalChatConfig,
+        ...globalChartConfig,
         mostPopulatedGroups: 10
     }
 };
@@ -91,7 +91,8 @@ const CATH_DOMAIN: StatsFacetInterface = {
                 parameters: {
                     attribute: RcsbSearchMetadata.RcsbPolymerInstanceAnnotation.AnnotationLineage.Depth.path,
                     operator: RcsbSearchMetadata.RcsbPolymerInstanceAnnotation.AnnotationLineage.Depth.operator.Equals,
-                    value: 3
+                    // @#@#@# set to 1 to simplify dataset
+                    value: 1
                 }
             },
             facets: [{
@@ -102,7 +103,7 @@ const CATH_DOMAIN: StatsFacetInterface = {
         }]
     },
     chartConfig: {
-        ...globalChatConfig,
+        ...globalChartConfig,
         mostPopulatedGroups: 10
     }
 };
@@ -127,7 +128,8 @@ const ADD_CATH_DOMAIN: StatsFacetInterface = {
                 parameters: {
                     attribute: RcsbSearchMetadata.RcsbPolymerInstanceAnnotation.AnnotationLineage.Depth.path,
                     operator: RcsbSearchMetadata.RcsbPolymerInstanceAnnotation.AnnotationLineage.Depth.operator.Equals,
-                    value: 3
+                    // @#@#@# set to 1 to simplify dataset
+                    value: 1
                 }
             },
             facets: [{

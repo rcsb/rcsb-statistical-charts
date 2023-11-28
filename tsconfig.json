@@ -9,7 +9,7 @@
     "target": "es6",
     "module": "esnext",
     "jsx": "react",
-    "lib": [ "dom", "es2020" ],
+    "lib": [ "dom", "ES2021"],
     "allowJs": true,
     "sourceMap": true,
     "noUnusedLocals": true,
@@ -18,7 +18,7 @@
     "declaration": true,
     "declarationDir": "./lib",
     "esModuleInterop": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
   },
   "include": [ "src" ],
   "exclude": [
