@@ -109,12 +109,14 @@ function drillFacets(facets: SearchBucketFacetType[]): ChartObjectInterface[][] 
     const domList: string[] = [];
     const valueMap: Map<string,Map<string,number>> = new Map();
     facets.forEach(f=>{
-        domList.push(f.labelPath[0]);
         f.data.forEach(d=>{
-            labelSet.add(d.label.toString());
-            if(!valueMap.has(f.labelPath[0]))
-                valueMap.set(f.labelPath[0], new Map());
-            valueMap.get(f.labelPath[0])?.set(d.label.toString(), d.population);
+            const dim1 = d.labelPath[0];
+            const dim2 =d.labelPath[1];
+            domList.push(dim1);
+            labelSet.add(dim2);
+            if(!valueMap.has(dim1))
+                valueMap.set(dim1, new Map());
+            valueMap.get(dim1)?.set(dim2, d.population);
         });
     });
 

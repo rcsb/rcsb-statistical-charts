@@ -56,8 +56,8 @@
     "webpack-dev-server": "^4.9.3"
   },
   "dependencies": {
-    "@rcsb/rcsb-api-tools": "^4.1.11",
-    "@rcsb/rcsb-charts": "^0.2.4",
-    "@rcsb/rcsb-search-tools": "^0.0.5"
+    "@rcsb/rcsb-api-tools": "^4.2.0",
+    "@rcsb/rcsb-charts": "^0.2.23",
+    "@rcsb/rcsb-search-tools": "^0.0.14"
   }
 }
